@@ -3,11 +3,11 @@ import { listDirectory } from '$lib/files';
 /** @type {import('./$types').PageServerLoad} */
 export async function load({ params, url }) {
 	const boxId: string = params.slug;
-	const fullPath: string = `/${boxId}`;
 
+	const list = listDirectory(boxId, [], './files')
 	return {
 		boxId: boxId,
-		path: `/box/${boxId}`,
-		files: await listDirectory(fullPath, './files')
+		path: [],
+		files: list
 	};
 }

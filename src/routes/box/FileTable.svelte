@@ -5,7 +5,6 @@
 		ToolbarContent,
 		ToolbarSearch,
 		Pagination,
-		Link,
 		Breadcrumb
 	} from 'carbon-components-svelte';
 	import prettyBytes from 'pretty-bytes';
@@ -23,17 +22,21 @@
 		TableSplit,
 		Archive
 	} from 'carbon-icons-svelte';
+	import type { File } from '$lib/types';
+	import { buildPath } from '$lib/files';
 
-	export let path: string;
-	export let files: { id: string; path: string; name: string; type: string; size: number }[];
+	export let boxId: string;
+	export let path: string[];
+	export let files: File[];
+	let innerWidth: number;
 
 	let rows = files.map((file, i) => {
 		return {
 			id: file.id,
 			name: file.name,
-			path: '/box' + file.path,
-			type: file.type,
-			size: file.type == 'dir' ? '' : prettyBytes(file.size),
+			path: file.path,
+			type: file.mime,
+			size: file.mime?.type == 'dir' ? '' : prettyBytes(file.size || 0),
 			actions: i % 2 ? 'Round robin' : 'DNS delegation'
 		};
 	});
@@ -45,22 +48,28 @@
 	$: console.log('filteredRowIds', filteredRowIds);
 
 	function generateBreadcrumbPaths() {
-		let pathItems = path.replace('/box/', '').split('/');
-		const breadcrumbs = [];
+		let currentPath: string[] = [];
+		let breadcrumbs = [
+			{
+				name: boxId,
+				path: buildPath(boxId, currentPath)
+			}
+		];
 
-		let currentPath = '/box';
-		for (let i = 0; i < pathItems.length; i++) {
-			const e = pathItems[i];
-			currentPath = currentPath + '/' + e;
+		for (let i = 0; i < path.length; i++) {
+			const file = path[i];
 			breadcrumbs.push({
-				name: e,
-				path: currentPath
+				name: file,
+				path: buildPath(boxId, currentPath, file)
 			});
+			currentPath.push(file);
 		}
 
 		return breadcrumbs;
 	}
 </script>
+
+<svelte:window bind:innerWidth />
 
 <div class="breadcrumb">
 	<Breadcrumb>
@@ -79,12 +88,18 @@
 </div>
 
 <DataTable
-	headers={[
-		{ key: 'name', value: 'Name' },
-		{ key: 'type', value: 'Type' },
-		{ key: 'size', value: 'Size' },
-		{ key: 'actions', value: 'Actions' }
-	]}
+	sortable
+	headers={innerWidth < 500
+		? [
+				{ key: 'name', value: 'Name' },
+				{ key: 'actions', value: 'Actions' }
+		  ]
+		: [
+				{ key: 'name', value: 'Name' },
+				{ key: 'type', value: 'Type' },
+				{ key: 'size', value: 'Size' },
+				{ key: 'actions', value: 'Actions' }
+		  ]}
 	{rows}
 	{pageSize}
 	{page}
@@ -97,7 +112,12 @@
 
 	<svelte:fragment slot="cell" let:row let:cell>
 		{#if cell.key === 'name'}
-			<a href={row.path} class="bx--link" data-sveltekit-reload>
+			<a
+				href={buildPath(boxId, path, row.name)}
+				class="bx--link"
+				target={row.type.type == 'dir' ? '_self' : '_blank'}
+				data-sveltekit-reload
+			>
 				{#if row.type.type == 'application'}
 					<DocumentBlank /> {cell.value}
 				{:else if row.type.type == 'audio'}

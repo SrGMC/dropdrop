@@ -27,3 +27,25 @@ html, body {
 a.bx--link svg {
     margin-right: 5px;
 }
+
+.create-folder-tooltip .bx--tooltip__label {
+    display: none;
+}
+
+.create-folder-tooltip .bx--tooltip {
+    margin-top: 30px !important;
+    background: #fff;
+    min-width: 18rem;
+    max-width: 18rem;
+}
+
+.create-folder-tooltip .bx--tooltip__caret {
+    border-bottom: #fff;
+}
+
+@media screen and (max-width: 500px) {
+    .bx--btn svg {
+        margin-left: 12px !important;
+        margin-right: 12px;
+    }
+}

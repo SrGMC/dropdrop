@@ -1,4 +1,4 @@
-import { listDirectory } from '$lib/files';
+import { getFile, isDirectory, listDirectory } from '$lib/files';
 
 /** @type {import('./$types').PageServerLoad} */
 export async function load({ params, url }) {
@@ -6,9 +6,21 @@ export async function load({ params, url }) {
 	const file: string = params.file;
 	const fullPath: string = `/${boxId}/${file}`;
 
-	return {
-		boxId: boxId,
-		path: `/box/${boxId}/${file}`,
-		files: await listDirectory(fullPath, './files')
-	};
+	if (isDirectory(fullPath, './files')) {
+		const list = listDirectory(boxId, file.split('/'), './files');
+		return {
+			type: 'dir',
+			boxId: boxId,
+			path: file.split('/'),
+			files: list
+		};
+	} else {
+		return {
+			type: 'file',
+			boxId: boxId,
+			name: fullPath.split('/').pop(),
+			path: [...file.split('/'), file],
+			base64: getFile(fullPath, './files')
+		};
+	}
 }
