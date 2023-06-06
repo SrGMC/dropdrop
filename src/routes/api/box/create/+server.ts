@@ -1,4 +1,6 @@
-import { xkcdPassphrase } from 'xkcd-passphrase';
+import pkg from 'xkcd-passphrase';
+const { xkcdPassphrase } = pkg;
+
 import fs from 'fs';
 
 export async function POST({}): Promise<Response> {
