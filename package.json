@@ -33,6 +33,7 @@
 	},
 	"type": "module",
 	"dependencies": {
+		"@sveltejs/adapter-node": "^1.2.4",
 		"filesize": "^10.0.7",
 		"mime-types": "^2.1.35",
 		"mmmagic": "^0.5.3",
