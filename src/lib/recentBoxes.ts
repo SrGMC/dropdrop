@@ -14,9 +14,9 @@ if (browser) {
 }
 
 export function addRecentBox(boxId: string) {
-    if(boxId == undefined || boxId == null) {
-        return;
-    }
+	if (boxId == undefined || boxId == null) {
+		return;
+	}
 	if (!recentBoxesArray.includes(boxId)) {
 		if (recentBoxesArray.length >= 5) {
 			recentBoxesArray.splice(0, 1);

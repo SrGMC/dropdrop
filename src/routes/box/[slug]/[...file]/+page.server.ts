@@ -1,4 +1,4 @@
-import { getFile, isDirectory, listDirectory } from '$lib/files';
+import { getFile, isDirectory, listDirectory } from '$lib/files/node';
 
 /** @type {import('./$types').PageServerLoad} */
 export async function load({ params, url }) {

@@ -50,7 +50,7 @@
 		display: flex;
 		align-items: center;
 		height: 100%;
-        max-width: 800px;
+		max-width: 800px;
 	}
 
 	h1 {
@@ -63,7 +63,7 @@
 		margin-bottom: 20px;
 	}
 
-    .recentBoxes {
-        margin-top: 30px
-    }
+	.recentBoxes {
+		margin-top: 30px;
+	}
 </style>

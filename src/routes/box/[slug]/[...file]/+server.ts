@@ -1,39 +1,58 @@
-import { buildPath } from '$lib/files.js';
+import { buildPath } from '$lib/files/common';
+import { error } from '@sveltejs/kit';
 import fs from 'fs';
-import { Readable } from 'stream';
 
-async function convertStreamToBuffer(stream: any): Promise<Uint8Array> {
-	const chunks: any[] = [];
-  
-	return new Promise((resolve, reject) => {
-	  stream.on('data', (chunk: any) => chunks.push(chunk));
-	  stream.on('end', () => {
-		try {
-		  const concatenatedChunks = Uint8Array.from(chunks.flat());
-		  resolve(concatenatedChunks);
-		} catch (error) {
-		  reject(error);
-		}
-	  });
-	  stream.on('error', reject);
-	});
-  }
-
-export async function POST({params, request}): Promise<Response> {
+export async function POST({ params, request }): Promise<Response> {
 	const boxId: string = params.slug;
 	const path: string[] = params.file.split('/');
 	const fullPath: string = buildPath(boxId, path, undefined, false);
-    
-    if(!request.body) {
-        fs.mkdirSync(`${process.cwd()}/files/${fullPath}`, { recursive: true });
-    } else {
-		const fileBlob: string = <string>(await request.formData()).get('file')?.toString()
-		fs.writeFileSync(`${process.cwd()}/files/${fullPath}`, fileBlob);
-    }
 
-    return new Response(
+	if (!request.body) {
+		fs.mkdirSync(`./files/${fullPath}`, { recursive: true });
+	} else {
+		const formData = await request.formData();
+		if (formData.has('file')) {
+			const fileFormDataEntry: FormDataEntryValue = <FormDataEntryValue>formData.get('file');
+			const fileBlob: Blob = <Blob>fileFormDataEntry.valueOf();
+
+			if (fileBlob.size > 5242880) {
+				throw error(400, 'File exceeds maximum 5MB size.');
+			}
+
+			const arrayBuffer: ArrayBuffer = await fileBlob.arrayBuffer();
+			const buffer = Buffer.from(arrayBuffer);
+			fs.writeFileSync(`./files/${fullPath}`, buffer);
+		} else {
+			throw error(400, "Missing form data parameter 'file'");
+		}
+	}
+
+	return new Response(
 		JSON.stringify({
 			path: path
+		}),
+		{
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		}
+	);
+}
+
+export async function DELETE({ params }): Promise<Response> {
+	const boxId: string = params.slug;
+	const path: string[] = params.file.split('/');
+	const fullPath: string = buildPath(boxId, path, undefined, false);
+
+	if (!fs.existsSync(`./files/${fullPath}`)) {
+		throw error(404, 'File or folder not exist');
+	}
+
+	fs.rmSync(`./files/${fullPath}`, { recursive: true, force: true });
+
+	return new Response(
+		JSON.stringify({
+			status: true
 		}),
 		{
 			headers: {

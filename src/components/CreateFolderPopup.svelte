@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { buildPath, openCreateFolderModal } from '$lib/files';
+	import { buildPath } from '$lib/files/common';
+	import { openCreateFolderModal } from '$lib/files/browser';
 	import type { File } from '$lib/types';
 	import { Modal, TextInput } from 'carbon-components-svelte';
 	import { createEventDispatcher } from 'svelte';
@@ -35,17 +36,18 @@
 			return;
 		}
 
-        let result;
-        try {
-            console.log(`${path}/${data.name}`);
-            result = await (await fetch(buildPath(boxId, path, data.name), {
-                method: 'POST'
-            })).json();
-        } catch(err) {
-            state.invalid = true;
+		let result;
+		try {
+			result = await (
+				await fetch(buildPath(boxId, path, data.name), {
+					method: 'POST'
+				})
+			).json();
+		} catch (err) {
+			state.invalid = true;
 			state.invalidText = 'An error has occurred while creating the folder';
 			return;
-        }
+		}
 
 		dispatch('submit', <File>{
 			type: 'file',
@@ -65,10 +67,8 @@
 			invalidText: ''
 		};
 		close();
-        goto(result.path);
+		goto(result.path);
 	}
-
-	console.log('CreateFolderPopup', path);
 </script>
 
 <Modal
@@ -79,11 +79,10 @@
 	selectorPrimaryFocus="#db-name"
 	on:click:button--secondary={close}
 	on:submit={() => {
-		console.log('Clicked submit');
 		submit();
 	}}
 >
-	<p>Create a new Folder database in <code>{boxId}/{path.join('/')}</code></p>
+	<p>Create a new folder in <code>{boxId}/{path.join('/')}</code></p>
 	<br />
 	<TextInput
 		invalid={state.invalid}
