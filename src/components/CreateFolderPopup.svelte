@@ -58,6 +58,8 @@
 			size: 0
 		});
 
+		const newPath = buildPath(boxId, path, data.name, true)
+
 		// Reset to initial values
 		data = {
 			name: ''
@@ -67,7 +69,7 @@
 			invalidText: ''
 		};
 		close();
-		goto(result.path);
+		goto(newPath);
 	}
 </script>
 

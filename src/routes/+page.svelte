@@ -3,6 +3,7 @@
 	import { Button, InlineLoading, Link, ListItem, UnorderedList } from 'carbon-components-svelte';
 	import { Add } from 'carbon-icons-svelte';
 	import { recentBoxes } from '../lib/recentBoxes';
+	import { buildPath } from '$lib/files/common';
 
 	let loading = false;
 
@@ -14,7 +15,7 @@
 			})
 		).json();
 		loading = false;
-		goto(`/box/${result.boxId}`);
+		goto(buildPath(result.boxId, []));
 	}
 </script>
 

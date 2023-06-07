@@ -12,6 +12,8 @@ RUN npm run build
 FROM node:18-alpine
 WORKDIR /app
 
+ENV ORIGIN=http://localhost:3000
+
 COPY --from=builder /usr/src/app/build .
 COPY --from=builder /usr/src/app/package.json .
 
