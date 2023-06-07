@@ -1,6 +1,6 @@
 import { error } from '@sveltejs/kit';
 import fs from 'fs';
-import mime from 'mime-types';
+import mime from 'mime';
 import type { File } from '../types';
 import { buildPath, getMimeTypeInfo } from './common';
 
@@ -30,7 +30,7 @@ export function listDirectory(boxId: string, path: string[], prefix: string = ''
 				id: i,
 				boxId: boxId,
 				name: file,
-				mime: getMimeTypeInfo(isDirectory ? 'dir' : <string>mime.lookup(baseFilePath)),
+				mime: getMimeTypeInfo(isDirectory ? 'dir' : <string>mime.getType(baseFilePath)),
 				size: isDirectory ? 0 : fileStat.size,
 				path: [...path, file]
 			});
