@@ -17,7 +17,7 @@
 			if ($page.url.searchParams.has('download')) {
 				setTimeout(() => {
 					window.close();
-				}, 500)
+				}, 500);
 			}
 		}
 	});
