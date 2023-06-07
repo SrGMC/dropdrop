@@ -13,6 +13,7 @@ FROM node:18-alpine
 WORKDIR /app
 
 ENV ORIGIN=http://localhost:3000
+ENV BODY_SIZE_LIMIT=15728640
 
 COPY --from=builder /usr/src/app/build .
 COPY --from=builder /usr/src/app/package.json .
