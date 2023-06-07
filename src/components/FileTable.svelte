@@ -35,9 +35,9 @@
 	import { buildPath, getMimeTypeInfo } from '$lib/files/common';
 	import {
 		deleteFileOrFolder,
-		uploadFiles,
 		openCreateFolderModal,
-		uploadFile
+		uploadFile,
+		errors
 	} from '$lib/files/browser';
 	import Breadcrumb from './Breadcrumb.svelte';
 	import { createEventDispatcher } from 'svelte';
@@ -67,23 +67,11 @@
 	let selectedRowIds: any[] = [];
 
 	let state: FileTableState = {
-		error: {
-			size: false,
-			upload: false
-		},
-		errorLists: {
-			size: [],
-			upload: []
-		},
 		uploading: false,
 		deleting: false
 	};
 
 	async function upload(event: any) {
-		state.errorLists = {
-			size: [],
-			upload: []
-		};
 		state.uploading = true;
 
 		const inputFiles = event.detail ? event.detail : event.target.files;
@@ -92,12 +80,17 @@
 		for (let i = 0; i < inputFiles.length; i++) {
 			const file = inputFiles[i];
 			if (file.size > 10485760) {
-				state.errorLists.size.push({
-					name: file.name
-				});
+				errors.set([
+					...$errors,
+					{
+						id: $errors.length == 0 ? 0 : $errors[$errors.length - 1].id + 1,
+						name: file.name,
+						type: 'size'
+					}
+				]);
 			} else {
 				const result = await uploadFile(file, boxId, path);
-				if (result) {
+				if (result && !files.find((f) => f.name == file.name)) {
 					newFiles.push({
 						id: files.length + newFileCount,
 						type: 'file',
@@ -108,10 +101,16 @@
 						size: file.size
 					});
 					newFileCount++;
-				} else
-					state.errorLists.upload.push({
-						name: file.name
-					});
+				} else if (!result) {
+					errors.set([
+						...$errors,
+						{
+							id: $errors.length == 0 ? 0 : $errors[$errors.length - 1].id + 1,
+							name: file.name,
+							type: 'upload'
+						}
+					]);
+				}
 			}
 		}
 
@@ -329,22 +328,21 @@
 <input type="file" multiple style="display: none;" id="fileUpload" on:change={upload} />
 
 <div class="notifications">
-	{#each state.errorLists.size as sizeError}
+	{#each $errors as error}
 		<InlineNotification
 			lowContrast
 			kind="error"
-			title={`${sizeError.name}:`}
-			subtitle="Files must be 10MB in size or lower."
+			title={`${error.name}:`}
+			subtitle={error.type == 'size'
+				? 'File must be 10MB in size or lower.'
+				: 'An error occurred while uploading the file. Please, try again later.'}
+			timeout={10000}
 			hideCloseButton={true}
-		/>
-	{/each}
-	{#each state.errorLists.upload as uploadError}
-		<InlineNotification
-			lowContrast
-			kind="error"
-			title={`${uploadError.name}:`}
-			subtitle="An error occurred while uploading the file. Please, try again later."
-			hideCloseButton={true}
+			on:close={() => {
+				let list = JSON.parse(JSON.stringify($errors));
+				list.splice($errors.indexOf(error), 1);
+				errors.set(list);
+			}}
 		/>
 	{/each}
 </div>

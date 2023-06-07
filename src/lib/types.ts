@@ -25,14 +25,6 @@ export type MimeType = {
 };
 
 export type FileTableState = {
-	error: {
-		size: boolean;
-		upload: boolean;
-	};
-	errorLists: {
-		size: { name: string }[];
-		upload: { name: string }[];
-	};
 	uploading: boolean;
 	deleting: boolean;
 };

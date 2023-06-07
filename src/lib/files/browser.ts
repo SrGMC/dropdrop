@@ -1,7 +1,8 @@
-import { writable } from 'svelte/store';
+import { writable, type Writable } from 'svelte/store';
 import { buildPath } from './common';
 
 export let openCreateFolderModal = writable(false);
+export let errors: Writable<{ id: number, name: string; type: 'size' | 'upload' }[]> = writable([]);
 
 export function downloadBase64AsFile(base64: string, filename: string) {
 	// Create an anchor element
