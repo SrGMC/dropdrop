@@ -29,7 +29,8 @@
 		<h1>DropDrop</h1>
 		<p>
 			DropDrop is a service to quickly create "boxes" that allow everybody with the box address to
-			upload and download files.
+			upload and download files.<br>
+			<span class="copyright">Built by <a href="https://alvaro.galisteo.me">Álvaro Galisteo</a></span>
 		</p>
 		{#if !loading}
 			<Button icon={Add} on:click={createBox}>Create a box</Button>
@@ -66,6 +67,11 @@
 	p {
 		font-size: 1.3rem;
 		margin-bottom: 20px;
+	}
+
+	.copyright {
+		font-size: 1rem;
+		opacity: 0.8;
 	}
 
 	.recentBoxes {
