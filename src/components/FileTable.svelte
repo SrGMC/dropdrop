@@ -82,7 +82,7 @@
 		let newFileCount = 1;
 		for (let i = 0; i < inputFiles.length; i++) {
 			const file = inputFiles[i];
-			if (file.size > 5242880) {
+			if (file.size > 15728640) {
 				state.error.size = true;
 			} else {
 				newFiles.push({
@@ -322,7 +322,7 @@
 			lowContrast
 			kind="error"
 			title="Error:"
-			subtitle="Files must be 5MB in size or lower."
+			subtitle="Files must be 15MB in size or lower."
 			hideCloseButton={true}
 		/>
 	{/if}
