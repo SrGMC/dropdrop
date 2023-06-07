@@ -58,7 +58,7 @@
 			size: 0
 		});
 
-		const newPath = buildPath(boxId, path, data.name, true)
+		const newPath = buildPath(boxId, path, data.name, true);
 
 		// Reset to initial values
 		data = {
