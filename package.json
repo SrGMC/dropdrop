@@ -30,19 +30,11 @@
 		"svelte-check": "^3.0.1",
 		"tslib": "^2.4.1",
 		"typescript": "^5.0.0",
-		"vite": "^4.3.0"
-	},
-	"type": "module",
-	"dependencies": {
+		"vite": "^4.3.0",
 		"@sveltejs/adapter-node": "^1.2.4",
-		"filesize": "^10.0.7",
 		"mime": "^3.0.0",
-		"mime-types": "^2.1.35",
-		"mmmagic": "^0.5.3",
 		"pretty-bytes": "^6.1.0",
-		"secure-password-utilities": "^0.2.1",
-		"sequelize": "^6.31.1",
-		"sqlite3": "^5.1.6",
-		"xkcd-passphrase": "^3.3.9"
-	}
+		"secure-password-utilities": "^0.2.1"
+	},
+	"type": "module"
 }
