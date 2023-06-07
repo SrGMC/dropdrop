@@ -35,6 +35,24 @@ export async function uploadFiles(files: any, boxId: string, path: string[]) {
 	return result;
 }
 
+export async function uploadFile(file: any, boxId: string, path: string[]) {
+	let result = true;
+	const formData = new FormData();
+	formData.append('file', file, file.name);
+
+	try {
+		await fetch(buildPath(boxId, path, file.name), {
+			method: 'POST',
+			body: formData
+		});
+	} catch (err) {
+		result = false;
+		console.log('uploadFiles', err);
+	}
+
+	return result;
+}
+
 export async function deleteFileOrFolder(boxId: string, path: string[]) {
 	let result = true;
 	try {

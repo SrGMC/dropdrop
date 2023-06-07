@@ -31,9 +31,14 @@
 		FolderAdd,
 		Download
 	} from 'carbon-icons-svelte';
-	import type { File } from '$lib/types';
+	import type { File, FileTableState } from '$lib/types';
 	import { buildPath, getMimeTypeInfo } from '$lib/files/common';
-	import { deleteFileOrFolder, uploadFiles, openCreateFolderModal } from '$lib/files/browser';
+	import {
+		deleteFileOrFolder,
+		uploadFiles,
+		openCreateFolderModal,
+		uploadFile
+	} from '$lib/files/browser';
 	import Breadcrumb from './Breadcrumb.svelte';
 	import { createEventDispatcher } from 'svelte';
 	import { page } from '$app/stores';
@@ -61,19 +66,23 @@
 	let filterValue = '';
 	let selectedRowIds: any[] = [];
 
-	let state = {
+	let state: FileTableState = {
 		error: {
 			size: false,
 			upload: false
+		},
+		errorLists: {
+			size: [],
+			upload: []
 		},
 		uploading: false,
 		deleting: false
 	};
 
 	async function upload(event: any) {
-		state.error = {
-			size: false,
-			upload: false
+		state.errorLists = {
+			size: [],
+			upload: []
 		};
 		state.uploading = true;
 
@@ -83,27 +92,30 @@
 		for (let i = 0; i < inputFiles.length; i++) {
 			const file = inputFiles[i];
 			if (file.size > 10485760) {
-				state.error.size = true;
-			} else {
-				newFiles.push({
-					id: files.length + newFileCount,
-					type: 'file',
-					boxId: boxId,
-					path: [...path, file.name],
-					name: file.name,
-					mime: getMimeTypeInfo(file.type),
-					size: file.size
+				state.errorLists.size.push({
+					name: file.name
 				});
-				newFileCount++;
+			} else {
+				const result = await uploadFile(file, boxId, path);
+				if (result) {
+					newFiles.push({
+						id: files.length + newFileCount,
+						type: 'file',
+						boxId: boxId,
+						path: [...path, file.name],
+						name: file.name,
+						mime: getMimeTypeInfo(file.type),
+						size: file.size
+					});
+					newFileCount++;
+				} else
+					state.errorLists.upload.push({
+						name: file.name
+					});
 			}
 		}
 
-		const result = await uploadFiles(inputFiles, boxId, path);
 		dispatch('upload', newFiles);
-
-		if (!result) {
-			state.error.upload = true;
-		}
 		state.uploading = false;
 	}
 
@@ -317,24 +329,24 @@
 <input type="file" multiple style="display: none;" id="fileUpload" on:change={upload} />
 
 <div class="notifications">
-	{#if state.error.size}
+	{#each state.errorLists.size as sizeError}
 		<InlineNotification
 			lowContrast
 			kind="error"
-			title="Error:"
+			title={`${sizeError.name}:`}
 			subtitle="Files must be 10MB in size or lower."
 			hideCloseButton={true}
 		/>
-	{/if}
-	{#if state.error.upload}
+	{/each}
+	{#each state.errorLists.upload as uploadError}
 		<InlineNotification
 			lowContrast
 			kind="error"
-			title="Error:"
-			subtitle="Couldn't upload files. Please, try again later."
+			title={`${uploadError.name}:`}
+			subtitle="An error occurred while uploading the file. Please, try again later."
 			hideCloseButton={true}
 		/>
-	{/if}
+	{/each}
 </div>
 
 <style>
