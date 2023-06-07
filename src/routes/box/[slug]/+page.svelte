@@ -12,6 +12,10 @@
 	});
 </script>
 
+<svelte:head>
+	<title>DropDrop | /{data.boxId}</title>
+</svelte:head>
+
 <CreateFolderPopup
 	boxId={data.boxId}
 	path={data.path}

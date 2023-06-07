@@ -7,6 +7,7 @@
 	import { downloadBase64AsFile } from '$lib/files/browser';
 	import type { Directory, File } from '$lib/types';
 	import { page } from '$app/stores';
+	import { buildPath } from '$lib/files/common';
 
 	export let data: Directory | File;
 
@@ -22,6 +23,10 @@
 		}
 	});
 </script>
+
+<svelte:head>
+	<title>DropDrop | {buildPath(data.boxId, data.path, undefined, false)}</title>
+</svelte:head>
 
 {#if data.type == 'dir'}
 	<CreateFolderPopup

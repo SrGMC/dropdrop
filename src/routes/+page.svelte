@@ -19,6 +19,10 @@
 	}
 </script>
 
+<svelte:head>
+	<title>DropDrop</title>
+</svelte:head>
+
 <div class="content">
 	<div>
 		<img src="/logo.png" alt="DropDrop logo" width="64" />
