@@ -15,7 +15,12 @@
 	import { buildPath } from '$lib/files/common';
 	import { CloudUpload, TrashCan, FolderAdd, Download } from 'carbon-icons-svelte';
 	import { createEventDispatcher } from 'svelte';
-	import { deleteFileOrFolder, openCreateFolderModal, setStateAttribute, state } from '$lib/files/browser';
+	import {
+		deleteFileOrFolder,
+		openCreateFolderModal,
+		setStateAttribute,
+		state
+	} from '$lib/files/browser';
 	import { download, remove } from './common';
 	import { page } from '$app/stores';
 	import EmptyTable from './EmptyTable.svelte';
@@ -134,7 +139,7 @@
 				</Button>
 			</ToolbarContent>
 		</Toolbar>
-		
+
 		{#if $state.uploading}
 			<div class="upload-progress">
 				<ProgressBar value={$state.progress} />

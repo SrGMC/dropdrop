@@ -37,7 +37,7 @@
 
 		setTimeout(() => {
 			resetErrors();
-		}, 5000)
+		}, 5000);
 	}
 </script>
 

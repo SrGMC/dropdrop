@@ -19,8 +19,8 @@ export async function upload(
 		} else {
 			const result = await uploadFile(file, boxId, path);
 			if (result) {
-				const existingFile = currentFiles.find((f) => f.name == file.name)
-				if(!existingFile) {
+				const existingFile = currentFiles.find((f) => f.name == file.name);
+				if (!existingFile) {
 					newFiles.push({
 						id: uuidv4(),
 						type: 'file',

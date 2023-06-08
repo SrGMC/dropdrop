@@ -30,7 +30,7 @@
 			data.files = [...data.files];
 		}}
 	/>
-	
+
 	{#key data.files}
 		<DirectoryDisplay
 			boxId={data.boxId}
