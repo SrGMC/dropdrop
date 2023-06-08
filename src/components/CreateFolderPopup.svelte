@@ -1,10 +1,10 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
 	import { buildPath } from '$lib/files/common';
+	import { createEventDispatcher } from 'svelte';
+	import { goto } from '$app/navigation';
+	import { Modal, TextInput } from 'carbon-components-svelte';
 	import { openCreateFolderModal } from '$lib/files/browser';
 	import type { File } from '$lib/types';
-	import { Modal, TextInput } from 'carbon-components-svelte';
-	import { createEventDispatcher } from 'svelte';
 
 	const dispatch = createEventDispatcher();
 

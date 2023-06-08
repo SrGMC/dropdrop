@@ -1,5 +1,5 @@
 export type Node = {
-	id: number;
+	id: string;
 	type: 'dir' | 'file';
 	boxId: string;
 	path: string[];
@@ -9,6 +9,7 @@ export type Node = {
 export type Directory = Node & {
 	type: 'dir';
 	files: File[];
+	readme?: string;
 };
 
 export type File = Node & {
@@ -27,4 +28,11 @@ export type MimeType = {
 export type FileTableState = {
 	uploading: boolean;
 	deleting: boolean;
+	progress: number;
+};
+
+export type ErrorNotification = {
+	id: string;
+	name: string;
+	type: 'size' | 'upload';
 };

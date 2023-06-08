@@ -1,8 +1,39 @@
-import { writable, type Writable } from 'svelte/store';
 import { buildPath } from './common';
+import { v4 as uuidv4 } from 'uuid';
+import { writable, type Writable } from 'svelte/store';
+import type { ErrorNotification, FileTableState } from '$lib/types';
 
 export let openCreateFolderModal = writable(false);
-export let errors: Writable<{ id: number, name: string; type: 'size' | 'upload' }[]> = writable([]);
+
+export let internalState: FileTableState = {
+	uploading: false,
+	deleting: false,
+	progress: 0
+};
+export let state: Writable<FileTableState> = writable(internalState);
+
+export let internalErrors: ErrorNotification[] = [];
+export let errors: Writable<ErrorNotification[]> = writable(internalErrors);
+
+export function addError(name: string, type: 'size' | 'upload') {
+	internalErrors.push({
+		id: uuidv4(),
+		name: name,
+		type: type
+	});
+	errors.set(internalErrors);
+}
+
+export function resetErrors() {
+	internalErrors = [];
+	errors.set(internalErrors);
+}
+
+export function setStateAttribute(attribute: string, value: any) {
+	//@ts-ignore
+	internalState[attribute] = value;
+	state.set(internalState);
+}
 
 export function downloadBase64AsFile(base64: string, filename: string) {
 	// Create an anchor element

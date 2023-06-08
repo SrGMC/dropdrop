@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { addRecentBox } from '$lib/recentBoxes';
-	import FileTable from '../../../components/FileTable.svelte';
 	import CreateFolderPopup from '../../../components/CreateFolderPopup.svelte';
 	import type { Directory } from '$lib/types';
+	import DirectoryDisplay from '../../../components/DirectoryDisplay.svelte';
 
 	export let data: Directory;
 
@@ -27,11 +27,13 @@
 		data.files = [...data.files];
 	}}
 />
+
 {#key data.files}
-	<FileTable
+	<DirectoryDisplay
 		boxId={data.boxId}
-		path={data.path}
 		files={data.files}
+		path={data.path}
+		readme={data.readme || ''}
 		on:upload={(event) => {
 			//@ts-ignore
 			data.files = [...data.files, ...event.detail];
