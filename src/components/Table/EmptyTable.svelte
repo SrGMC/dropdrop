@@ -9,11 +9,17 @@
 	} from 'carbon-components-svelte';
 	import { openCreateFolderModal, state } from '$lib/files/browser';
 	import { CloudUpload, FolderAdd } from 'carbon-icons-svelte';
+	import { onMount } from 'svelte';
 
 	let innerWidth: number;
-</script>
 
-<svelte:window bind:innerWidth />
+	onMount(() => {
+		innerWidth = screen && screen.width ? screen.width : window.innerWidth;
+		window.addEventListener('resize', () => {
+			innerWidth = screen && screen.width ? screen.width : window.innerWidth;
+		});
+	});
+</script>
 
 <Toolbar>
 	<ToolbarContent>
@@ -30,7 +36,7 @@
 					document.querySelector('#fileUpload')?.click();
 				}}
 			>
-				{#if innerWidth > 500}
+				{#if innerWidth > 600}
 					Upload file(s)
 				{/if}
 			</Button>
@@ -43,7 +49,7 @@
 				openCreateFolderModal.set(true);
 			}}
 		>
-			{#if innerWidth > 500}
+			{#if innerWidth > 600}
 				Create folder
 			{/if}
 		</Button>

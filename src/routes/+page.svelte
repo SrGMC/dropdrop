@@ -24,7 +24,7 @@
 </svelte:head>
 
 <div class="content">
-	<div>
+	<div class="centered">
 		<img src="/logo.png" alt="DropDrop logo" width="64" />
 		<h1>DropDrop</h1>
 		<p>
@@ -78,5 +78,12 @@
 
 	.recentBoxes {
 		margin-top: 30px;
+	}
+
+	@media screen and (max-width: 600px) {
+		.content .centered {
+			padding-left: 2rem;
+			padding-right: 2rem;
+		}
 	}
 </style>

@@ -23,7 +23,7 @@
 </script>
 
 <div class="content">
-	<div>
+	<div class="centered">
 		<Download size={32} />
 		<h1>Downloading</h1>
 		<ProgressBar status={downloadStatus} labelText={`Downloading ${name}`} />
@@ -60,5 +60,12 @@
 
 	p.close a {
 		color: var(--cds-danger-01, #da1e28);
+	}
+
+	@media screen and (max-width: 600px) {
+		.content .centered {
+			padding-left: 2rem;
+			padding-right: 2rem;
+		}
 	}
 </style>

@@ -10,11 +10,12 @@
 		InlineLoading,
 		OverflowMenu,
 		OverflowMenuItem,
-		ProgressBar
+		ProgressBar,
+		Truncate
 	} from 'carbon-components-svelte';
 	import { buildPath } from '$lib/files/common';
 	import { CloudUpload, TrashCan, FolderAdd, Download } from 'carbon-icons-svelte';
-	import { createEventDispatcher } from 'svelte';
+	import { createEventDispatcher, onMount } from 'svelte';
 	import {
 		deleteFileOrFolder,
 		openCreateFolderModal,
@@ -33,6 +34,7 @@
 	export let boxId: string;
 	export let path: string[];
 	export let files: File[];
+
 	let innerWidth: number;
 
 	$: rows = files.map((file) => {
@@ -51,6 +53,33 @@
 	let filteredRowIds: any[] = [];
 	let filterValue = '';
 	let selectedRowIds: any[] = [];
+	let headers = [
+		{ key: 'name', value: 'Name' },
+		{ key: 'type', value: 'Type', width: '10rem' },
+		{ key: 'size', value: 'Size', width: '10rem' },
+		{ key: 'menu', empty: true, width: '5rem' }
+	];
+	$: {
+		if (innerWidth < 650) {
+			headers = [
+				{ key: 'name', value: 'Name' },
+				{ key: 'menu', empty: true, width: '4rem' }
+			];
+		} else if (innerWidth < 850) {
+			headers = [
+				{ key: 'name', value: 'Name' },
+				{ key: 'size', value: 'Size', width: '10rem' },
+				{ key: 'menu', empty: true, width: '5rem' }
+			];
+		} else {
+			headers = [
+				{ key: 'name', value: 'Name' },
+				{ key: 'type', value: 'Type', width: '10rem' },
+				{ key: 'size', value: 'Size', width: '10rem' },
+				{ key: 'menu', empty: true, width: '5rem' }
+			];
+		}
+	}
 
 	async function removeFiles() {
 		setStateAttribute('deleting', true);
@@ -63,9 +92,14 @@
 		download(files, selectedRowIds, boxId, $page.url);
 		selectedRowIds = [];
 	}
-</script>
 
-<svelte:window bind:innerWidth />
+	onMount(() => {
+		innerWidth = screen && screen.width ? screen.width : window.innerWidth;
+		window.addEventListener('resize', () => {
+			innerWidth = screen && screen.width ? screen.width : window.innerWidth;
+		});
+	});
+</script>
 
 {#if rows.length <= 0}
 	<EmptyTable />
@@ -76,18 +110,7 @@
 		sortDirection="ascending"
 		batchSelection
 		bind:selectedRowIds
-		headers={innerWidth < 500
-			? [
-					{ key: 'name', value: 'Name' },
-					{ key: 'size', value: 'Size' },
-					{ key: 'menu', empty: true }
-			  ]
-			: [
-					{ key: 'name', value: 'Name' },
-					{ key: 'type', value: 'Type' },
-					{ key: 'size', value: 'Size' },
-					{ key: 'menu', empty: true }
-			  ]}
+		{headers}
 		{rows}
 		{pageSize}
 		page={tablePage}
@@ -120,7 +143,7 @@
 							document.querySelector('#fileUpload')?.click();
 						}}
 					>
-						{#if innerWidth > 500}
+						{#if innerWidth > 600}
 							Upload file(s)
 						{/if}
 					</Button>
@@ -133,7 +156,7 @@
 						openCreateFolderModal.set(true);
 					}}
 				>
-					{#if innerWidth > 500}
+					{#if innerWidth > 600}
 						Create folder
 					{/if}
 				</Button>

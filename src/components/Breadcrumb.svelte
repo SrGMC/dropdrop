@@ -47,4 +47,11 @@
 	.breadcrumb {
 		margin-bottom: 10px;
 	}
+
+	@media screen and (max-width: 600px) {
+		.breadcrumb {
+			padding-left: 2rem;
+			padding-right: 2rem;
+		}
+	}
 </style>

@@ -61,9 +61,16 @@ a.bx--link svg {
 	display: none;
 }
 
-@media screen and (max-width: 500px) {
+@media screen and (max-width: 600px) {
 	.bx--btn svg {
 		margin-left: 12px !important;
 		margin-right: 12px;
+	}
+
+	#main-content {
+		margin-left: 0;
+		margin-right: 0;
+		padding-left: 0;
+		padding-right: 0;
 	}
 }
