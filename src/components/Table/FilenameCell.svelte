@@ -40,7 +40,7 @@
 			return s.replace('<', '&lt;').replace('>', '&gt;');
 		}
 
-		if(!browser) {
+		if (!browser) {
 			return str;
 		}
 
