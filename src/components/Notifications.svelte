@@ -10,7 +10,7 @@
 			kind="error"
 			title={`${error.name}:`}
 			subtitle={error.type == 'size'
-				? 'File must be 10MB in size or lower.'
+				? 'File must be 100MB in size or lower.'
 				: 'An error occurred while uploading the file. Please, try again later.'}
 			timeout={5000}
 			hideCloseButton={true}

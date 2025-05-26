@@ -14,7 +14,7 @@ export async function upload(
 	for (let i = 0; i < inputFiles.length; i++) {
 		const file = inputFiles[i];
 		console.log(file);
-		if (file.size > 10485760) {
+		if (file.size > 100 * 1024 * 1024) {
 			addError(file.name, 'size');
 		} else {
 			const result = await uploadFile(file, boxId, path);

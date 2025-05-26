@@ -15,8 +15,8 @@ export async function POST({ params, request }): Promise<Response> {
 			const fileFormDataEntry: FormDataEntryValue = <FormDataEntryValue>formData.get('file');
 			const fileBlob: Blob = <Blob>fileFormDataEntry.valueOf();
 
-			if (fileBlob.size > 10485760) {
-				throw error(413, 'File exceeds maximum 10MB size.');
+			if (fileBlob.size > 100 * 1024 * 1024) {
+				throw error(413, 'File exceeds maximum 100MB size.');
 			}
 
 			const arrayBuffer: ArrayBuffer = await fileBlob.arrayBuffer();
