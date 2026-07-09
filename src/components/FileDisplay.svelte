@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import { downloadBase64AsFile } from '$lib/files/browser';
-	import { ProgressBar } from 'carbon-components-svelte';
+	import { Button, ProgressBar } from 'carbon-components-svelte';
 	import { Download } from 'carbon-icons-svelte';
 	import { onMount } from 'svelte';
 
@@ -60,8 +60,8 @@
 </script>
 
 {#if previewMode === 'download'}
-	<div class="content">
-		<div class="centered">
+	<div class="centered-view">
+		<div class="centered-content">
 			<Download size={32} />
 			<h1>Downloading</h1>
 			<ProgressBar status={downloadStatus} labelText={`Downloading ${name}`} />
@@ -73,9 +73,7 @@
 	<div class="preview-container">
 		<div class="preview-header">
 			<span class="filename">{name}</span>
-			<button class="download-btn" on:click={triggerDownload}>
-				<Download size={16} /> Download
-			</button>
+			<Button size="sm" icon={Download} on:click={triggerDownload}>Download</Button>
 		</div>
 		<div class="preview-body image-preview">
 			<img src={dataUri} alt={name} />
@@ -85,9 +83,7 @@
 	<div class="preview-container">
 		<div class="preview-header">
 			<span class="filename">{name}</span>
-			<button class="download-btn" on:click={triggerDownload}>
-				<Download size={16} /> Download
-			</button>
+			<Button size="sm" icon={Download} on:click={triggerDownload}>Download</Button>
 		</div>
 		<div class="preview-body text-preview">
 			<pre>{textContent}</pre>
@@ -97,23 +93,19 @@
 	<div class="preview-container">
 		<div class="preview-header">
 			<span class="filename">{name}</span>
-			<button class="download-btn" on:click={triggerDownload}>
-				<Download size={16} /> Download
-			</button>
+			<Button size="sm" icon={Download} on:click={triggerDownload}>Download</Button>
 		</div>
 		<div class="preview-body pdf-preview">
 			<embed src={dataUri} type="application/pdf" width="100%" height="100%" />
 		</div>
 	</div>
 {:else if previewMode === 'unsupported'}
-	<div class="content">
-		<div class="centered">
+	<div class="centered-view">
+		<div class="centered-content">
 			<Download size={32} />
 			<h1>{name}</h1>
 			<p>Preview is not supported for this file type in the browser.</p>
-			<button class="download-btn large" on:click={triggerDownload}>
-				<Download size={16} /> Download file
-			</button>
+			<Button size="lg" icon={Download} on:click={triggerDownload}>Download file</Button>
 			<!-- svelte-ignore a11y-invalid-attribute -->
 			<p class="close"><a href="javascript:window.close();">Close tab</a></p>
 		</div>
@@ -121,20 +113,21 @@
 {/if}
 
 <style>
-	/* Download view */
-	.content {
+	/* Centered views (download / unsupported) */
+	.centered-view {
 		display: flex;
 		align-items: center;
+		justify-content: center;
 		height: 100%;
+		width: 100%;
+	}
+
+	.centered-content {
 		width: 100%;
 		max-width: 800px;
 	}
 
-	.content div {
-		width: 100%;
-	}
-
-	.content h1 {
+	.centered-content h1 {
 		margin-bottom: 15px;
 	}
 
@@ -146,23 +139,29 @@
 		color: var(--cds-danger-01, #da1e28);
 	}
 
-	/* Preview layout */
+	/* Preview layout — full viewport below Carbon header (3rem / 48px) */
 	.preview-container {
+		position: fixed;
+		top: 3rem;
+		left: 0;
+		right: 0;
+		bottom: 0;
 		display: flex;
 		flex-direction: column;
-		height: 100%;
-		width: 100%;
-		overflow: hidden;
+		z-index: 1;
 	}
 
 	.preview-header {
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		padding: 0.75rem 1rem;
+		padding: 0 1rem;
+		height: 3rem;
 		border-bottom: 1px solid var(--cds-ui-03, #e0e0e0);
 		background: var(--cds-ui-01, #f4f4f4);
 		flex-shrink: 0;
+		width: 100%;
+		box-sizing: border-box;
 	}
 
 	.filename {
@@ -171,31 +170,7 @@
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
-	}
-
-	.download-btn {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.4rem;
-		padding: 0.4rem 0.9rem;
-		background: var(--cds-interactive-01, #0f62fe);
-		color: #fff;
-		border: none;
-		border-radius: 4px;
-		cursor: pointer;
-		font-size: 0.875rem;
-		white-space: nowrap;
-		flex-shrink: 0;
-	}
-
-	.download-btn:hover {
-		background: var(--cds-hover-primary, #0353e9);
-	}
-
-	.download-btn.large {
-		padding: 0.6rem 1.2rem;
-		font-size: 1rem;
-		margin-top: 1rem;
+		margin-right: 1rem;
 	}
 
 	.preview-body {
@@ -211,6 +186,7 @@
 		justify-content: center;
 		background: var(--cds-ui-background, #fff);
 		padding: 1rem;
+		box-sizing: border-box;
 	}
 
 	.image-preview img {
@@ -241,12 +217,5 @@
 	.pdf-preview embed {
 		flex: 1;
 		border: none;
-	}
-
-	@media screen and (max-width: 600px) {
-		.content .centered {
-			padding-left: 2rem;
-			padding-right: 2rem;
-		}
 	}
 </style>
