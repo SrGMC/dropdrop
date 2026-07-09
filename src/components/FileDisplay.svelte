@@ -3,19 +3,20 @@
 	import { downloadBase64AsFile } from '$lib/files/browser';
 	import { Button, ProgressBar } from 'carbon-components-svelte';
 	import { Download } from 'carbon-icons-svelte';
+	import { marked } from 'marked';
 	import { onMount } from 'svelte';
 
 	export let base64: string;
 	export let name: string;
 
-	type PreviewMode = 'image' | 'text' | 'pdf' | 'unsupported' | 'download';
+	type PreviewMode = 'image' | 'text' | 'markdown' | 'pdf' | 'download';
 
 	function getPreviewMode(filename: string): PreviewMode {
 		const ext = filename.split('.').pop()?.toLowerCase() ?? '';
-		if (['png', 'jpg', 'jpeg'].includes(ext)) return 'image';
+		if (['png', 'jpg', 'jpeg', 'heic', 'heif', 'raw'].includes(ext)) return 'image';
 		if (ext === 'txt') return 'text';
+		if (ext === 'md') return 'markdown';
 		if (ext === 'pdf') return 'pdf';
-		if (['heic', 'raw', 'arw', 'cr2', 'nef', 'dng'].includes(ext)) return 'unsupported';
 		return 'download';
 	}
 
@@ -23,6 +24,9 @@
 		const ext = filename.split('.').pop()?.toLowerCase() ?? '';
 		if (ext === 'png') return 'image/png';
 		if (['jpg', 'jpeg'].includes(ext)) return 'image/jpeg';
+		if (ext === 'heic') return 'image/heic';
+		if (ext === 'heif') return 'image/heif';
+		if (ext === 'raw') return 'image/x-raw';
 		if (ext === 'pdf') return 'application/pdf';
 		return 'application/octet-stream';
 	}
@@ -32,6 +36,7 @@
 
 	let downloadStatus: 'active' | 'finished' = 'active';
 	let textContent = '';
+	let markdownHtml = '';
 
 	onMount(() => {
 		if (previewMode === 'download') {
@@ -48,6 +53,12 @@
 				textContent = atob(base64);
 			} catch {
 				textContent = 'Could not decode file content.';
+			}
+		} else if (previewMode === 'markdown') {
+			try {
+				markdownHtml = marked.parse(atob(base64)) as string;
+			} catch {
+				markdownHtml = '<p>Could not render markdown.</p>';
 			}
 		}
 	});
@@ -89,6 +100,17 @@
 			<pre>{textContent}</pre>
 		</div>
 	</div>
+{:else if previewMode === 'markdown'}
+	<div class="preview-container">
+		<div class="preview-header">
+			<span class="filename">{name}</span>
+			<Button size="sm" icon={Download} on:click={triggerDownload}>Download</Button>
+		</div>
+		<div class="preview-body markdown-preview">
+			<!-- eslint-disable-next-line svelte/no-at-html-tags -->
+			{@html markdownHtml}
+		</div>
+	</div>
 {:else if previewMode === 'pdf'}
 	<div class="preview-container">
 		<div class="preview-header">
@@ -97,17 +119,6 @@
 		</div>
 		<div class="preview-body pdf-preview">
 			<embed src={dataUri} type="application/pdf" width="100%" height="100%" />
-		</div>
-	</div>
-{:else if previewMode === 'unsupported'}
-	<div class="centered-view">
-		<div class="centered-content">
-			<Download size={32} />
-			<h1>{name}</h1>
-			<p>Preview is not supported for this file type in the browser.</p>
-			<Button size="lg" icon={Download} on:click={triggerDownload}>Download file</Button>
-			<!-- svelte-ignore a11y-invalid-attribute -->
-			<p class="close"><a href="javascript:window.close();">Close tab</a></p>
 		</div>
 	</div>
 {/if}
@@ -221,5 +232,15 @@
 	.pdf-preview embed {
 		flex: 1;
 		border: none;
+	}
+
+	/* Markdown preview */
+	.markdown-preview {
+		background: var(--cds-ui-background, #fff);
+		padding: 2rem;
+		max-width: 860px;
+		margin: 0 auto;
+		box-sizing: border-box;
+		width: 100%;
 	}
 </style>
