@@ -46,6 +46,7 @@
 	"type": "module",
 	"dependencies": {
 		"@types/archiver": "^8.0.0",
-		"archiver": "^8.0.0"
+		"archiver": "^8.0.0",
+		"dompurify": "^3.4.11"
 	}
 }

@@ -38,7 +38,7 @@
 	let textContent = '';
 	let markdownHtml = '';
 
-	onMount(() => {
+	onMount(async () => {
 		if (previewMode === 'download') {
 			downloadStatus = 'active';
 			downloadBase64AsFile(base64, name);
@@ -55,8 +55,9 @@
 				textContent = 'Could not decode file content.';
 			}
 		} else if (previewMode === 'markdown') {
+			const DOMPurify = (await import('dompurify')).default;
 			try {
-				markdownHtml = marked.parse(atob(base64)) as string;
+				markdownHtml = DOMPurify.sanitize(marked.parse(atob(base64)) as string);
 			} catch {
 				markdownHtml = '<p>Could not render markdown.</p>';
 			}
@@ -74,10 +75,13 @@
 	<div class="centered-view">
 		<div class="centered-content">
 			<Download size={32} />
-			<h1>Downloading</h1>
+			<h1>{name}</h1>
 			<ProgressBar status={downloadStatus} labelText={`Downloading ${name}`} />
-			<!-- svelte-ignore a11y-invalid-attribute -->
-			<p class="close"><a href="javascript:window.close();">Close tab</a></p>
+			<div class="download-actions">
+				<Button size="lg" icon={Download} on:click={triggerDownload}>Download again</Button>
+				<!-- svelte-ignore a11y-invalid-attribute -->
+				<p class="close"><a href="javascript:window.close();">Close tab</a></p>
+			</div>
 		</div>
 	</div>
 {:else if previewMode === 'image'}
@@ -140,6 +144,14 @@
 
 	.centered-content h1 {
 		margin-bottom: 15px;
+	}
+
+	.download-actions {
+		margin-top: 1.5rem;
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 0.75rem;
 	}
 
 	p {
