@@ -162,6 +162,10 @@
 		flex-shrink: 0;
 		width: 100%;
 		box-sizing: border-box;
+		position: fixed;
+		top: 48px; /* Adjust for Carbon header height */
+		left: 0;
+		right: 0;
 	}
 
 	.filename {
