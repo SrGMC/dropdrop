@@ -1,6 +1,46 @@
 import { buildPath } from '$lib/files/common';
 import { error } from '@sveltejs/kit';
 import fs from 'fs';
+import archiver_ from 'archiver';
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const archiver = (archiver_ as any).default ?? archiver_;
+import { Readable } from 'stream';
+
+export async function GET({ params, url }): Promise<Response> {
+	if (!url.searchParams.has('zip')) {
+		throw error(400, 'Missing zip parameter');
+	}
+
+	const boxId: string = params.slug;
+	const path: string[] = params.file.split('/');
+	const fullPath: string = `./files${buildPath(boxId, path, undefined, false)}`;
+
+	if (!fs.existsSync(fullPath) || !fs.statSync(fullPath).isDirectory()) {
+		throw error(404, 'Directory not found');
+	}
+
+	const folderName = path[path.length - 1];
+
+	const body = new ReadableStream({
+		start(controller) {
+			const archive = archiver('zip', { zlib: { level: 6 } });
+
+			archive.on('data', (chunk: Buffer) => controller.enqueue(chunk));
+			archive.on('end', () => controller.close());
+			archive.on('error', (err: Error) => controller.error(err));
+
+			archive.directory(fullPath, folderName);
+			archive.finalize();
+		}
+	});
+
+	return new Response(body, {
+		headers: {
+			'Content-Type': 'application/zip',
+			'Content-Disposition': `attachment; filename="${folderName}.zip"`
+		}
+	});
+}
 
 export async function POST({ params, request }): Promise<Response> {
 	const boxId: string = params.slug;

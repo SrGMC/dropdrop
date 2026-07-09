@@ -174,11 +174,19 @@
 				<FilenameCell {boxId} {path} name={row.name} mime={row.mime} />
 			{:else if cell.key === 'menu'}
 				<OverflowMenu flipped>
-					<OverflowMenuItem
-						text="Download"
-						href={buildPath(boxId, path, row.name)}
-						target="_blank"
-					/>
+					{#if row.mime?.type === 'dir'}
+						<OverflowMenuItem
+							text="Download as ZIP"
+							href={`${buildPath(boxId, path, row.name)}?zip=true`}
+							target="_blank"
+						/>
+					{:else}
+						<OverflowMenuItem
+							text="Download"
+							href={buildPath(boxId, path, row.name)}
+							target="_blank"
+						/>
+					{/if}
 					<OverflowMenuItem
 						danger
 						text="Delete"
