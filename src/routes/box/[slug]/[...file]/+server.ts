@@ -1,8 +1,7 @@
 import { buildPath } from '$lib/files/common';
 import { error } from '@sveltejs/kit';
 import fs from 'fs';
-import { createRequire } from 'module';
-const archiver = createRequire(import.meta.url)('archiver');
+import { ZipArchive } from 'archiver';
 
 export async function GET({ params, url }): Promise<Response> {
 	if (!url.searchParams.has('zip')) {
@@ -21,7 +20,7 @@ export async function GET({ params, url }): Promise<Response> {
 
 	const body = new ReadableStream({
 		start(controller) {
-			const archive = archiver('zip', { zlib: { level: 6 } });
+			const archive = new ZipArchive({ zlib: { level: 6 } });
 
 			archive.on('data', (chunk: Buffer) => controller.enqueue(chunk));
 			archive.on('end', () => controller.close());
