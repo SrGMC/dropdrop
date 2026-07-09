@@ -1,10 +1,8 @@
 import { buildPath } from '$lib/files/common';
 import { error } from '@sveltejs/kit';
 import fs from 'fs';
-import archiver_ from 'archiver';
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const archiver = (archiver_ as any).default ?? archiver_;
-import { Readable } from 'stream';
+import { createRequire } from 'module';
+const archiver = createRequire(import.meta.url)('archiver');
 
 export async function GET({ params, url }): Promise<Response> {
 	if (!url.searchParams.has('zip')) {
