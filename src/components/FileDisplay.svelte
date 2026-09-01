@@ -4,7 +4,7 @@
 	import { Button, InlineLoading } from 'carbon-components-svelte';
 	import { Download, ArrowLeft, ArrowRight } from 'carbon-icons-svelte';
 	import { marked } from 'marked';
-	import { onMount, onDestroy } from 'svelte';
+	import { onMount } from 'svelte';
 
 	export let name: string;
 	export let prevUrl: string | null = null;
@@ -43,7 +43,7 @@
 		window.addEventListener('keydown', onKeydown);
 		if (previewMode === 'download') {
 			await triggerDownload();
-			return;  // cleanup handled by onDestroy below
+			return () => window.removeEventListener('keydown', onKeydown);
 		}
 		if (previewMode === 'text') {
 			try {
@@ -62,9 +62,8 @@
 				markdownHtml = '<p>Could not render markdown.</p>';
 			}
 		}
+		return () => window.removeEventListener('keydown', onKeydown);
 	});
-
-	onDestroy(() => window.removeEventListener('keydown', onKeydown));
 
 	// Download the file via fetch → Blob → programmatic anchor click so that we
 	// stream through the server endpoint rather than embedding the content in the
