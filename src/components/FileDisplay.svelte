@@ -61,6 +61,7 @@
 		downloading = true;
 		try {
 			const res = await fetch(`${fileUrl}?download=true`);
+			if (!res.ok) throw new Error(`Download failed: ${res.status}`);
 			const blob = await res.blob();
 			const blobUrl = URL.createObjectURL(blob);
 			const a = document.createElement('a');

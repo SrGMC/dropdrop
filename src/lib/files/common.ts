@@ -1,16 +1,6 @@
 import mimes from './mime.json';
 import type { MimeType } from '../types';
 
-function sanitizeFilePath(path: string) {
-	// Define a regular expression pattern to match invalid characters and Unicode control characters
-	const invalidCharsRegex = /[<>:"|?*\u0000-\u001F\u007F-\u009F]/g;
-
-	// Remove invalid characters from the file path
-	const sanitizedPath = path.replace(invalidCharsRegex, '');
-
-	return sanitizedPath;
-}
-
 export function buildPath(
 	boxId: string,
 	pathArray: string[],
@@ -23,14 +13,14 @@ export function buildPath(
 	let basePath = `${addBox ? '/box' : ''}/${boxId}`;
 
 	if (segments.length > 0) {
-		basePath += `/${segments.join('/')}`;
+		basePath += `/${segments.map(encodeURIComponent).join('/')}`;
 	}
 
 	if (file) {
-		basePath = basePath + '/' + file;
+		basePath = basePath + '/' + encodeURIComponent(file);
 	}
 
-	return sanitizeFilePath(basePath);
+	return basePath;
 }
 
 export function getMimeTypeInfo(mime: string): MimeType {

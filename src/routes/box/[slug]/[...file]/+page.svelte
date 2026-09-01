@@ -3,7 +3,6 @@
 	import { addRecentBox } from '$lib/recentBoxes';
 	import CreateFolderPopup from '../../../../components/CreateFolderPopup.svelte';
 	import type { Directory, File } from '$lib/types';
-	import { buildPath } from '$lib/files/common';
 	import FileDisplay from '../../../../components/FileDisplay.svelte';
 	import DirectoryDisplay from '../../../../components/DirectoryDisplay.svelte';
 
@@ -15,7 +14,7 @@
 </script>
 
 <svelte:head>
-	<title>DropDrop | {buildPath(data.boxId, data.path, undefined, false)}</title>
+	<title>DropDrop | {[data.boxId, ...data.path].filter(Boolean).join('/')}</title>
 </svelte:head>
 
 {#if data.type == 'dir'}
