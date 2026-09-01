@@ -1,38 +1,39 @@
-# create-svelte
+# DropDrop
 
-Everything you need to build a Svelte project, powered by [`create-svelte`](https://github.com/sveltejs/kit/tree/master/packages/create-svelte).
+Temporary file sharing. Create a box, drop files in, share the link.
 
-## Creating a project
+No accounts. Access is gated by the box ID — a short passphrase slug in the URL. Empty boxes are automatically deleted after 15 days.
 
-If you're seeing this, you've probably already done this step. Congrats!
+## Features
+
+- Upload files and folders via drag and drop or file picker
+- Preview images, PDFs, plain text, and markdown inline
+- Navigate between files with arrow keys
+- Download folders as ZIP
+- README.md files render at the bottom of each directory
+
+## Running with Docker
 
 ```bash
-# create a new project in the current directory
-npm create svelte@latest
-
-# create a new project in my-app
-npm create svelte@latest my-app
+docker run -p 3000:3000 -v $(pwd)/files:/app/files ghcr.io/srgmc/dropdrop
 ```
 
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+Set `ORIGIN` to your public URL in production:
 
 ```bash
-npm run dev
+docker run -p 3000:3000 -e ORIGIN=https://example.com -v $(pwd)/files:/app/files ghcr.io/srgmc/dropdrop
+```
 
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
+## Development
+
+```bash
+npm install
+npm run dev
 ```
 
 ## Building
 
-To create a production version of your app:
-
 ```bash
 npm run build
+node build
 ```
-
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://kit.svelte.dev/docs/adapters) for your target environment.
