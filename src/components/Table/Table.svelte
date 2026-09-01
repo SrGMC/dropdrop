@@ -182,7 +182,7 @@
 					{:else}
 						<OverflowMenuItem
 							text="Download"
-							href={buildPath(boxId, path, row.name)}
+							href={`${buildPath(boxId, path, row.name)}?download=true`}
 							target="_blank"
 						/>
 					{/if}
