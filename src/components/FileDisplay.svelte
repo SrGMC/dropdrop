@@ -15,7 +15,9 @@
 
 	function getPreviewMode(filename: string): PreviewMode {
 		const ext = filename.split('.').pop()?.toLowerCase() ?? '';
-		if (['png', 'jpg', 'jpeg', 'heic', 'heif', 'raw'].includes(ext)) return 'image';
+		if (
+			['png', 'jpg', 'jpeg', 'jpe', 'jfif', 'jif', 'heic', 'heif', 'raw', 'webp', 'gif', 'bmp', 'avif', 'ico', 'svg'].includes(ext)
+		) return 'image';
 		if (ext === 'txt') return 'text';
 		if (ext === 'md') return 'markdown';
 		if (ext === 'pdf') return 'pdf';
@@ -29,10 +31,6 @@
 	let downloading = false;
 
 	onMount(async () => {
-		if (previewMode === 'download') {
-			await triggerDownload();
-			return;
-		}
 		if (previewMode === 'text') {
 			try {
 				const res = await fetch(fileUrl);
