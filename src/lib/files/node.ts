@@ -21,7 +21,7 @@ export function isDirectory(boxId: string, path: string[]) {
 export function listDirectory(boxId: string, path: string[]): Array<File | Directory> {
 	const basePath = resolveBoxPath(boxId, path);
 	if (fs.existsSync(basePath)) {
-		const dirList = fs.readdirSync(basePath).sort();
+		const dirList = fs.readdirSync(basePath).sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
 		const fileList: Array<File | Directory> = [];
 
 		for (let i = 0; i < dirList.length; i++) {

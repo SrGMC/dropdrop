@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
+	import { browser } from '$app/environment';
 	import { Button, InlineLoading } from 'carbon-components-svelte';
 	import { Download, ArrowLeft, ArrowRight } from 'carbon-icons-svelte';
 	import { marked } from 'marked';
@@ -12,9 +13,9 @@
 
 	type PreviewMode = 'image' | 'text' | 'markdown' | 'pdf' | 'download';
 
-	// The page URL path doubles as the raw-file URL: <img>, <embed>, and fetch()
-	// all bypass the page route (no text/html in Accept) and hit +server.ts GET.
-	const fileUrl = $page.url.pathname;
+	// Reactive so client-side navigation updates the image src / embed src.
+	$: fileUrl = $page.url.pathname;
+	$: previewMode = getPreviewMode(name) as PreviewMode;
 
 	function getPreviewMode(filename: string): PreviewMode {
 		const ext = filename.split('.').pop()?.toLowerCase() ?? '';
@@ -27,11 +28,35 @@
 		return 'download';
 	}
 
-	const previewMode: PreviewMode = getPreviewMode(name);
-
 	let textContent = '';
 	let markdownHtml = '';
 	let downloading = false;
+
+	// Re-fetch text/markdown content whenever the file URL changes (covers initial
+	// load and client-side navigation between siblings).
+	$: if (browser) loadContent(fileUrl, previewMode);
+
+	async function loadContent(url: string, mode: PreviewMode) {
+		textContent = '';
+		markdownHtml = '';
+		if (mode === 'text') {
+			try {
+				const res = await fetch(url);
+				textContent = await res.text();
+			} catch {
+				textContent = 'Could not load file content.';
+			}
+		} else if (mode === 'markdown') {
+			try {
+				const DOMPurify = (await import('dompurify')).default;
+				const res = await fetch(url);
+				const text = await res.text();
+				markdownHtml = DOMPurify.sanitize(marked.parse(text) as string);
+			} catch {
+				markdownHtml = '<p>Could not render markdown.</p>';
+			}
+		}
+	}
 
 	function onKeydown(e: KeyboardEvent) {
 		if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
@@ -39,29 +64,9 @@
 		if (e.key === 'ArrowRight' && nextUrl) goto(nextUrl);
 	}
 
-	onMount(async () => {
+	onMount(() => {
 		window.addEventListener('keydown', onKeydown);
-		if (previewMode === 'download') {
-			await triggerDownload();
-			return () => window.removeEventListener('keydown', onKeydown);
-		}
-		if (previewMode === 'text') {
-			try {
-				const res = await fetch(fileUrl);
-				textContent = await res.text();
-			} catch {
-				textContent = 'Could not load file content.';
-			}
-		} else if (previewMode === 'markdown') {
-			try {
-				const DOMPurify = (await import('dompurify')).default;
-				const res = await fetch(fileUrl);
-				const text = await res.text();
-				markdownHtml = DOMPurify.sanitize(marked.parse(text) as string);
-			} catch {
-				markdownHtml = '<p>Could not render markdown.</p>';
-			}
-		}
+		if (previewMode === 'download') triggerDownload();
 		return () => window.removeEventListener('keydown', onKeydown);
 	});
 
