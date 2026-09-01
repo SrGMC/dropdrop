@@ -29,6 +29,10 @@
 	let downloading = false;
 
 	onMount(async () => {
+		if (previewMode === 'download') {
+			await triggerDownload();
+			return;
+		}
 		if (previewMode === 'text') {
 			try {
 				const res = await fetch(fileUrl);

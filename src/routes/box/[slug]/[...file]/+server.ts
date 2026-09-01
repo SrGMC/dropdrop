@@ -77,6 +77,11 @@ export async function POST({ params, request }): Promise<Response> {
 	if (!request.body) {
 		fs.mkdirSync(fullPath, { recursive: true });
 	} else {
+		const contentLength = Number(request.headers.get('content-length') ?? 0);
+		if (contentLength > 100 * 1024 * 1024) {
+			throw error(413, 'File exceeds maximum 100MB size.');
+		}
+
 		const formData = await request.formData();
 		if (formData.has('file')) {
 			const fileFormDataEntry: FormDataEntryValue = <FormDataEntryValue>formData.get('file');
