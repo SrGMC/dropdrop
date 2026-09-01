@@ -57,5 +57,5 @@
 		/>
 	{/key}
 {:else}
-	<FileDisplay base64={data.base64 || ''} name={data.name} />
+	<FileDisplay name={data.name} />
 {/if}

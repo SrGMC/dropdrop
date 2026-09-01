@@ -1,43 +1,72 @@
 import { resolveBoxPath } from '$lib/files/paths';
 import { error } from '@sveltejs/kit';
 import fs from 'fs';
+import mime from 'mime';
 import { ZipArchive } from 'archiver';
 
 export async function GET({ params, url }): Promise<Response> {
-	if (!url.searchParams.has('zip')) {
-		throw error(400, 'Missing zip parameter');
-	}
-
 	const boxId: string = params.slug;
 	const path: string[] = params.file.split('/');
 	const fullPath: string = resolveBoxPath(boxId, path);
 
-	if (!fs.existsSync(fullPath) || !fs.statSync(fullPath).isDirectory()) {
-		throw error(404, 'Directory not found');
+	if (!fs.existsSync(fullPath)) {
+		throw error(404, 'Not found');
 	}
 
-	// Strip any characters that could break out of the quoted filename header value.
-	const folderName = (path[path.length - 1] || boxId).replace(/[^\w.\- ]/g, '_');
+	const stat = fs.statSync(fullPath);
 
-	const body = new ReadableStream({
-		start(controller) {
-			const archive = new ZipArchive({ zlib: { level: 6 } });
-
-			archive.on('data', (chunk: Buffer) => controller.enqueue(chunk));
-			archive.on('end', () => controller.close());
-			archive.on('error', (err: Error) => controller.error(err));
-
-			archive.directory(fullPath, folderName);
-			archive.finalize();
+	if (stat.isDirectory()) {
+		if (!url.searchParams.has('zip')) {
+			throw error(400, 'Missing zip parameter');
 		}
-	});
 
-	return new Response(body, {
-		headers: {
-			'Content-Type': 'application/zip',
-			'Content-Disposition': `attachment; filename="${folderName}.zip"`
+		const folderName = (path[path.length - 1] || boxId).replace(/[^\w.\- ]/g, '_');
+
+		const body = new ReadableStream({
+			start(controller) {
+				const archive = new ZipArchive({ zlib: { level: 6 } });
+				archive.on('data', (chunk: Buffer) => controller.enqueue(chunk));
+				archive.on('end', () => controller.close());
+				archive.on('error', (err: Error) => controller.error(err));
+				archive.directory(fullPath, folderName);
+				archive.finalize();
+			}
+		});
+
+		return new Response(body, {
+			headers: {
+				'Content-Type': 'application/zip',
+				'Content-Disposition': `attachment; filename="${folderName}.zip"`
+			}
+		});
+	} else {
+		// Stream the file. <img>, <embed>, and fetch() all reach here because they
+		// don't include text/html in Accept, so SvelteKit skips the page route.
+		const filename = path[path.length - 1];
+		const mimeType = mime.getType(fullPath) || 'application/octet-stream';
+
+		const headers: Record<string, string> = {
+			'Content-Type': mimeType,
+			'Content-Length': String(stat.size)
+		};
+
+		if (url.searchParams.has('download')) {
+			// Strip chars that would break the quoted filename value.
+			const safeName = filename.replace(/["\\]/g, '_');
+			headers['Content-Disposition'] = `attachment; filename="${safeName}"`;
 		}
-	});
+
+		const body = new ReadableStream({
+			start(controller) {
+				const stream = fs.createReadStream(fullPath);
+				stream.on('data', (chunk) => controller.enqueue(chunk));
+				stream.on('end', () => controller.close());
+				stream.on('error', (err) => controller.error(err));
+			}
+		});
+
+		return new Response(body, { headers });
+	}
 }
 
 export async function POST({ params, request }): Promise<Response> {

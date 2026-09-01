@@ -23,7 +23,6 @@
 		state
 	} from '$lib/files/browser';
 	import { download, remove } from './common';
-	import { page } from '$app/stores';
 	import EmptyTable from './EmptyTable.svelte';
 	import FilenameCell from './FilenameCell.svelte';
 	import prettyBytes from 'pretty-bytes';
@@ -89,7 +88,7 @@
 	}
 
 	async function downloadFiles() {
-		download(files, selectedRowIds, boxId, $page.url);
+		await download(files, selectedRowIds, boxId);
 		selectedRowIds = [];
 	}
 
