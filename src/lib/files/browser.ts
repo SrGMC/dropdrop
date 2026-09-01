@@ -35,16 +35,6 @@ export function setStateAttribute(attribute: string, value: any) {
 	state.set(internalState);
 }
 
-export function downloadBase64AsFile(base64: string, filename: string) {
-	// Create an anchor element
-	var link = document.createElement('a');
-	link.href = 'data:application/octet-stream;base64,' + base64;
-	link.download = filename;
-
-	// Simulate a click on the anchor element to trigger the download
-	link.click();
-}
-
 export async function uploadFiles(files: any, boxId: string, path: string[]) {
 	let result = true;
 	for (let i = 0; i < files.length; i++) {

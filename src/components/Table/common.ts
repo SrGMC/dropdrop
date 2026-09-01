@@ -64,17 +64,28 @@ export async function remove(
 	dispatch('remove', result);
 }
 
-export async function download(
-	currentFiles: File[],
-	selectedIds: string[],
-	boxId: string,
-	url: URL
-) {
+// Download files via fetch → Blob → programmatic anchor so that requests reach
+// the streaming server endpoint rather than the page route.
+export async function download(currentFiles: File[], selectedIds: string[], boxId: string) {
 	for (let i = 0; i < selectedIds.length; i++) {
 		const id = selectedIds[i];
 		const file = currentFiles.find((f) => f.id == id);
-		if (file) {
-			window.open(`${url.protocol}//${url.host}${buildPath(boxId, file.path)}?download=true`);
+		if (!file) continue;
+
+		try {
+			const res = await fetch(`${buildPath(boxId, file.path)}?download=true`);
+			if (!res.ok) continue;
+			const blob = await res.blob();
+			const blobUrl = URL.createObjectURL(blob);
+			const a = document.createElement('a');
+			a.href = blobUrl;
+			a.download = file.name;
+			document.body.appendChild(a);
+			a.click();
+			document.body.removeChild(a);
+			URL.revokeObjectURL(blobUrl);
+		} catch (err) {
+			console.error('download failed', err);
 		}
 	}
 }
