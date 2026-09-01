@@ -60,10 +60,35 @@ export function listDirectory(boxId: string, path: string[]): Array<File | Direc
 	}
 }
 
+const README_SANITIZE_OPTIONS: sanitizeHtml.IOptions = {
+	allowedTags: [
+		'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+		'p', 'br', 'hr',
+		'strong', 'em', 'b', 'i', 'del', 's',
+		'code', 'pre',
+		'ul', 'ol', 'li',
+		'a', 'img',
+		'table', 'thead', 'tbody', 'tr', 'th', 'td',
+		'blockquote'
+	],
+	allowedAttributes: {
+		a: ['href', 'title'],
+		img: ['src', 'alt', 'title'],
+		th: ['align'],
+		td: ['align'],
+		code: ['class'],
+		pre: ['class']
+	},
+	allowedSchemes: ['http', 'https', 'mailto'],
+	allowedSchemesByTag: {
+		img: ['http', 'https']
+	}
+};
+
 export function loadReadme(boxId: string, path: string[]) {
 	const fullPath = resolveBoxPath(boxId, path, 'README.md');
 	if (fs.existsSync(fullPath) && !fs.statSync(fullPath).isDirectory()) {
-		return sanitizeHtml(marked.parse(fs.readFileSync(fullPath).toString('utf8')));
+		return sanitizeHtml(marked.parse(fs.readFileSync(fullPath).toString('utf8')) as string, README_SANITIZE_OPTIONS);
 	} else {
 		return '';
 	}

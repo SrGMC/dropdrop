@@ -40,5 +40,26 @@ cleanupEmptyBoxes();
 setInterval(cleanupEmptyBoxes, 6 * 60 * 60 * 1000);
 
 export const handle: Handle = async ({ event, resolve }) => {
-	return resolve(event);
+	const response = await resolve(event);
+
+	response.headers.set('X-Content-Type-Options', 'nosniff');
+	response.headers.set('X-Frame-Options', 'DENY');
+	response.headers.set('Referrer-Policy', 'no-referrer');
+	response.headers.set(
+		'Content-Security-Policy',
+		[
+			"default-src 'self'",
+			"script-src 'self' 'unsafe-inline'",
+			"style-src 'self' 'unsafe-inline'",
+			"img-src 'self' data: blob:",
+			"font-src 'self'",
+			"object-src 'self'",
+			"frame-ancestors 'none'",
+			"form-action 'self'",
+			"base-uri 'self'"
+		].join('; ')
+	);
+	response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+
+	return response;
 };
