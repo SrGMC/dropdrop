@@ -21,11 +21,18 @@ export async function load({ params }) {
 	} else {
 		// File content is streamed on demand via the GET handler in +server.ts.
 		// Do not load base64 here — files can be up to 100 MB.
+		const parentPath = path.slice(0, -1);
+		const siblings = listDirectory(boxId, parentPath)
+			.filter((f) => f.type === 'file')
+			.map((f) => f.name);
+		const idx = siblings.indexOf(path[path.length - 1]);
 		return {
 			type: 'file',
 			boxId: boxId,
 			name: path[path.length - 1],
-			path: path
+			path: path,
+			prevPath: idx > 0 ? [...parentPath, siblings[idx - 1]] : null,
+			nextPath: idx < siblings.length - 1 ? [...parentPath, siblings[idx + 1]] : null
 		};
 	}
 }

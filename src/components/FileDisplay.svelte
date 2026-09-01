@@ -1,11 +1,14 @@
 <script lang="ts">
 	import { page } from '$app/stores';
+	import { goto } from '$app/navigation';
 	import { Button, InlineLoading } from 'carbon-components-svelte';
-	import { Download } from 'carbon-icons-svelte';
+	import { Download, ArrowLeft, ArrowRight } from 'carbon-icons-svelte';
 	import { marked } from 'marked';
-	import { onMount } from 'svelte';
+	import { onMount, onDestroy } from 'svelte';
 
 	export let name: string;
+	export let prevUrl: string | null = null;
+	export let nextUrl: string | null = null;
 
 	type PreviewMode = 'image' | 'text' | 'markdown' | 'pdf' | 'download';
 
@@ -30,10 +33,17 @@
 	let markdownHtml = '';
 	let downloading = false;
 
+	function onKeydown(e: KeyboardEvent) {
+		if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+		if (e.key === 'ArrowLeft' && prevUrl) goto(prevUrl);
+		if (e.key === 'ArrowRight' && nextUrl) goto(nextUrl);
+	}
+
 	onMount(async () => {
+		window.addEventListener('keydown', onKeydown);
 		if (previewMode === 'download') {
 			await triggerDownload();
-			return;
+			return;  // cleanup handled by onDestroy below
 		}
 		if (previewMode === 'text') {
 			try {
@@ -53,6 +63,8 @@
 			}
 		}
 	});
+
+	onDestroy(() => window.removeEventListener('keydown', onKeydown));
 
 	// Download the file via fetch → Blob → programmatic anchor click so that we
 	// stream through the server endpoint rather than embedding the content in the
@@ -76,6 +88,13 @@
 	}
 </script>
 
+<svelte:head>
+	{#if previewMode === 'image'}
+		{#if prevUrl}<link rel="preload" as="image" href={prevUrl} />{/if}
+		{#if nextUrl}<link rel="preload" as="image" href={nextUrl} />{/if}
+	{/if}
+</svelte:head>
+
 {#if previewMode === 'download'}
 	<div class="centered-view">
 		<div class="centered-content">
@@ -95,11 +114,19 @@
 	<div class="preview-container">
 		<div class="preview-header">
 			<span class="filename">{name}</span>
-			{#if downloading}
-				<InlineLoading description="Downloading…" />
-			{:else}
-				<Button size="sm" icon={Download} on:click={triggerDownload}>Download</Button>
-			{/if}
+			<div class="header-actions">
+				{#if prevUrl}
+					<Button size="sm" kind="ghost" iconDescription="Previous" icon={ArrowLeft} href={prevUrl} />
+				{/if}
+				{#if nextUrl}
+					<Button size="sm" kind="ghost" iconDescription="Next" icon={ArrowRight} href={nextUrl} />
+				{/if}
+				{#if downloading}
+					<InlineLoading description="Downloading…" />
+				{:else}
+					<Button size="sm" icon={Download} on:click={triggerDownload}>Download</Button>
+				{/if}
+			</div>
 		</div>
 		<div class="preview-body image-preview">
 			<img src={fileUrl} alt={name} />
@@ -109,11 +136,19 @@
 	<div class="preview-container">
 		<div class="preview-header">
 			<span class="filename">{name}</span>
-			{#if downloading}
-				<InlineLoading description="Downloading…" />
-			{:else}
-				<Button size="sm" icon={Download} on:click={triggerDownload}>Download</Button>
-			{/if}
+			<div class="header-actions">
+				{#if prevUrl}
+					<Button size="sm" kind="ghost" iconDescription="Previous" icon={ArrowLeft} href={prevUrl} />
+				{/if}
+				{#if nextUrl}
+					<Button size="sm" kind="ghost" iconDescription="Next" icon={ArrowRight} href={nextUrl} />
+				{/if}
+				{#if downloading}
+					<InlineLoading description="Downloading…" />
+				{:else}
+					<Button size="sm" icon={Download} on:click={triggerDownload}>Download</Button>
+				{/if}
+			</div>
 		</div>
 		<div class="preview-body text-preview">
 			<pre>{textContent}</pre>
@@ -123,11 +158,19 @@
 	<div class="preview-container">
 		<div class="preview-header">
 			<span class="filename">{name}</span>
-			{#if downloading}
-				<InlineLoading description="Downloading…" />
-			{:else}
-				<Button size="sm" icon={Download} on:click={triggerDownload}>Download</Button>
-			{/if}
+			<div class="header-actions">
+				{#if prevUrl}
+					<Button size="sm" kind="ghost" iconDescription="Previous" icon={ArrowLeft} href={prevUrl} />
+				{/if}
+				{#if nextUrl}
+					<Button size="sm" kind="ghost" iconDescription="Next" icon={ArrowRight} href={nextUrl} />
+				{/if}
+				{#if downloading}
+					<InlineLoading description="Downloading…" />
+				{:else}
+					<Button size="sm" icon={Download} on:click={triggerDownload}>Download</Button>
+				{/if}
+			</div>
 		</div>
 		<div class="preview-body markdown-preview">
 			<!-- eslint-disable-next-line svelte/no-at-html-tags -->
@@ -138,11 +181,19 @@
 	<div class="preview-container">
 		<div class="preview-header">
 			<span class="filename">{name}</span>
-			{#if downloading}
-				<InlineLoading description="Downloading…" />
-			{:else}
-				<Button size="sm" icon={Download} on:click={triggerDownload}>Download</Button>
-			{/if}
+			<div class="header-actions">
+				{#if prevUrl}
+					<Button size="sm" kind="ghost" iconDescription="Previous" icon={ArrowLeft} href={prevUrl} />
+				{/if}
+				{#if nextUrl}
+					<Button size="sm" kind="ghost" iconDescription="Next" icon={ArrowRight} href={nextUrl} />
+				{/if}
+				{#if downloading}
+					<InlineLoading description="Downloading…" />
+				{:else}
+					<Button size="sm" icon={Download} on:click={triggerDownload}>Download</Button>
+				{/if}
+			</div>
 		</div>
 		<div class="preview-body pdf-preview">
 			<embed src={fileUrl} type="application/pdf" width="100%" height="100%" />
@@ -202,6 +253,13 @@
 		height: 3rem;
 		border-bottom: 1px solid var(--cds-ui-03, #e0e0e0);
 		background: var(--cds-ui-01, #f4f4f4);
+		flex-shrink: 0;
+	}
+
+	.header-actions {
+		display: flex;
+		align-items: center;
+		gap: 0.25rem;
 		flex-shrink: 0;
 	}
 

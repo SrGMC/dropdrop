@@ -7,7 +7,14 @@
 	import FileDisplay from '../../../../components/FileDisplay.svelte';
 	import DirectoryDisplay from '../../../../components/DirectoryDisplay.svelte';
 
-	export let data: Directory | File;
+	export let data: Directory | (File & { prevPath: string[] | null; nextPath: string[] | null });
+
+	$: prevUrl = data.type === 'file' && (data as any).prevPath
+		? buildPath(data.boxId, (data as any).prevPath)
+		: null;
+	$: nextUrl = data.type === 'file' && (data as any).nextPath
+		? buildPath(data.boxId, (data as any).nextPath)
+		: null;
 
 	onMount(() => {
 		addRecentBox(data.boxId);
@@ -57,5 +64,5 @@
 		/>
 	{/key}
 {:else}
-	<FileDisplay name={data.name} />
+	<FileDisplay name={data.name} {prevUrl} {nextUrl} />
 {/if}
