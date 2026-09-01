@@ -1,4 +1,5 @@
-import { buildPath, getMimeTypeInfo } from './common';
+import { getMimeTypeInfo } from './common';
+import { resolveBoxPath } from './paths';
 import { error } from '@sveltejs/kit';
 import { marked } from 'marked';
 import { v4 as uuidv4 } from 'uuid';
@@ -7,28 +8,25 @@ import mime from 'mime';
 import sanitizeHtml from 'sanitize-html';
 import type { Directory, File } from '../types';
 
-export function isDirectory(path: string, prefix: string = '') {
-	if (fs.existsSync(`${prefix}${path}`)) {
-		const fileStat = fs.statSync(`${prefix}${path}`);
-		return fileStat.isDirectory();
+/** True if the box-relative path exists and is a directory; throws 404 if it does not exist. */
+export function isDirectory(boxId: string, path: string[]) {
+	const fullPath = resolveBoxPath(boxId, path);
+	if (fs.existsSync(fullPath)) {
+		return fs.statSync(fullPath).isDirectory();
 	} else {
 		throw error(404, 'Not found');
 	}
 }
 
-export function listDirectory(
-	boxId: string,
-	path: string[],
-	prefix: string = ''
-): Array<File | Directory> {
-	const basePath = `${prefix}${buildPath(boxId, path, undefined, false)}`;
+export function listDirectory(boxId: string, path: string[]): Array<File | Directory> {
+	const basePath = resolveBoxPath(boxId, path);
 	if (fs.existsSync(basePath)) {
 		const dirList = fs.readdirSync(basePath).sort();
 		const fileList: Array<File | Directory> = [];
 
 		for (let i = 0; i < dirList.length; i++) {
 			const file = dirList[i];
-			const baseFilePath = `${basePath}/${file}`;
+			const baseFilePath = resolveBoxPath(boxId, [...path, file]);
 
 			const fileStat = fs.statSync(baseFilePath);
 			const isDirectory = fileStat.isDirectory();
@@ -63,24 +61,25 @@ export function listDirectory(
 }
 
 export function loadReadme(boxId: string, path: string[]) {
-	const fullPath = buildPath(boxId, path, 'README.md', false);
-	if (fs.existsSync(`./files/${fullPath}`) && !isDirectory(`./files/${fullPath}`)) {
-		return sanitizeHtml(marked.parse(getFile(fullPath, './files', false)));
+	const fullPath = resolveBoxPath(boxId, path, 'README.md');
+	if (fs.existsSync(fullPath) && !fs.statSync(fullPath).isDirectory()) {
+		return sanitizeHtml(marked.parse(fs.readFileSync(fullPath).toString('utf8')));
 	} else {
 		return '';
 	}
 }
 
-export function getFile(path: string, prefix: string = '', base64 = true) {
-	if (fs.existsSync(`${prefix}${path}`)) {
-		if (isDirectory(path, prefix)) {
+export function getFile(boxId: string, path: string[], base64 = true) {
+	const fullPath = resolveBoxPath(boxId, path);
+	if (fs.existsSync(fullPath)) {
+		if (fs.statSync(fullPath).isDirectory()) {
 			throw error(400, 'Path is directory');
 		}
 
 		if (base64) {
-			return fs.readFileSync(`${prefix}${path}`).toString('base64');
+			return fs.readFileSync(fullPath).toString('base64');
 		} else {
-			return fs.readFileSync(`${prefix}${path}`).toString('utf8');
+			return fs.readFileSync(fullPath).toString('utf8');
 		}
 	} else {
 		throw error(404, 'Not found');

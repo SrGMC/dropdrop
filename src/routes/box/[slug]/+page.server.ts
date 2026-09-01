@@ -6,7 +6,7 @@ export const prerender = false;
 export async function load({ params, url }) {
 	const boxId: string = params.slug;
 
-	const list = listDirectory(boxId, [], './files');
+	const list = listDirectory(boxId, []);
 	const readme = loadReadme(boxId, []);
 	return {
 		boxId: boxId,

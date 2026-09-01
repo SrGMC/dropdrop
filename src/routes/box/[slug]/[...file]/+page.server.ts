@@ -7,10 +7,9 @@ export async function load({ params, url }) {
 	const boxId: string = params.slug;
 	const file: string = params.file;
 	const path = file.split('/');
-	const fullPath: string = `/${boxId}/${file}`;
 
-	if (isDirectory(fullPath, './files')) {
-		const list = listDirectory(boxId, file.split('/'), './files');
+	if (isDirectory(boxId, path)) {
+		const list = listDirectory(boxId, path);
 		const readme = loadReadme(boxId, path);
 		return {
 			type: 'dir',
@@ -24,8 +23,8 @@ export async function load({ params, url }) {
 			type: 'file',
 			boxId: boxId,
 			name: path[path.length - 1],
-			path: [...path, file],
-			base64: getFile(fullPath, './files')
+			path: path,
+			base64: getFile(boxId, path)
 		};
 	}
 }

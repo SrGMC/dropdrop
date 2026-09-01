@@ -1,4 +1,4 @@
-import { buildPath } from '$lib/files/common';
+import { resolveBoxPath } from '$lib/files/paths';
 import { error } from '@sveltejs/kit';
 import fs from 'fs';
 import { ZipArchive } from 'archiver';
@@ -10,13 +10,14 @@ export async function GET({ params, url }): Promise<Response> {
 
 	const boxId: string = params.slug;
 	const path: string[] = params.file.split('/');
-	const fullPath: string = `./files${buildPath(boxId, path, undefined, false)}`;
+	const fullPath: string = resolveBoxPath(boxId, path);
 
 	if (!fs.existsSync(fullPath) || !fs.statSync(fullPath).isDirectory()) {
 		throw error(404, 'Directory not found');
 	}
 
-	const folderName = path[path.length - 1];
+	// Strip any characters that could break out of the quoted filename header value.
+	const folderName = (path[path.length - 1] || boxId).replace(/[^\w.\- ]/g, '_');
 
 	const body = new ReadableStream({
 		start(controller) {
@@ -42,10 +43,10 @@ export async function GET({ params, url }): Promise<Response> {
 export async function POST({ params, request }): Promise<Response> {
 	const boxId: string = params.slug;
 	const path: string[] = params.file.split('/');
-	const fullPath: string = buildPath(boxId, path, undefined, false);
+	const fullPath: string = resolveBoxPath(boxId, path);
 
 	if (!request.body) {
-		fs.mkdirSync(`./files/${fullPath}`, { recursive: true });
+		fs.mkdirSync(fullPath, { recursive: true });
 	} else {
 		const formData = await request.formData();
 		if (formData.has('file')) {
@@ -56,9 +57,14 @@ export async function POST({ params, request }): Promise<Response> {
 				throw error(413, 'File exceeds maximum 100MB size.');
 			}
 
+			// Never let an upload overwrite (or write "through") an existing directory.
+			if (fs.existsSync(fullPath) && fs.statSync(fullPath).isDirectory()) {
+				throw error(409, 'A directory with that name already exists');
+			}
+
 			const arrayBuffer: ArrayBuffer = await fileBlob.arrayBuffer();
 			const buffer = Buffer.from(arrayBuffer);
-			fs.writeFileSync(`./files/${fullPath}`, buffer);
+			fs.writeFileSync(fullPath, buffer);
 		} else {
 			throw error(400, "Missing form data parameter 'file'");
 		}
@@ -79,13 +85,13 @@ export async function POST({ params, request }): Promise<Response> {
 export async function DELETE({ params }): Promise<Response> {
 	const boxId: string = params.slug;
 	const path: string[] = params.file.split('/');
-	const fullPath: string = buildPath(boxId, path, undefined, false);
+	const fullPath: string = resolveBoxPath(boxId, path);
 
-	if (!fs.existsSync(`./files/${fullPath}`)) {
+	if (!fs.existsSync(fullPath)) {
 		throw error(404, 'File or folder not exist');
 	}
 
-	fs.rmSync(`./files/${fullPath}`, { recursive: true, force: true });
+	fs.rmSync(fullPath, { recursive: true, force: true });
 
 	return new Response(
 		JSON.stringify({
