@@ -1,15 +1,17 @@
 <script lang="ts">
 	import { page } from '$app/stores';
-	import { downloadBase64AsFile } from '$lib/files/browser';
-	import { Button, ProgressBar } from 'carbon-components-svelte';
+	import { Button, InlineLoading } from 'carbon-components-svelte';
 	import { Download } from 'carbon-icons-svelte';
 	import { marked } from 'marked';
 	import { onMount } from 'svelte';
 
-	export let base64: string;
 	export let name: string;
 
 	type PreviewMode = 'image' | 'text' | 'markdown' | 'pdf' | 'download';
+
+	// The page URL path doubles as the raw-file URL: <img>, <embed>, and fetch()
+	// all bypass the page route (no text/html in Accept) and hit +server.ts GET.
+	const fileUrl = $page.url.pathname;
 
 	function getPreviewMode(filename: string): PreviewMode {
 		const ext = filename.split('.').pop()?.toLowerCase() ?? '';
@@ -20,55 +22,56 @@
 		return 'download';
 	}
 
-	function getMimeType(filename: string): string {
-		const ext = filename.split('.').pop()?.toLowerCase() ?? '';
-		if (ext === 'png') return 'image/png';
-		if (['jpg', 'jpeg'].includes(ext)) return 'image/jpeg';
-		if (ext === 'heic') return 'image/heic';
-		if (ext === 'heif') return 'image/heif';
-		if (ext === 'raw') return 'image/x-raw';
-		if (ext === 'pdf') return 'application/pdf';
-		return 'application/octet-stream';
-	}
+	const previewMode: PreviewMode = getPreviewMode(name);
 
-	const forceDownload = $page.url.searchParams.has('download');
-	const previewMode: PreviewMode = forceDownload ? 'download' : getPreviewMode(name);
-
-	let downloadStatus: 'active' | 'finished' = 'active';
 	let textContent = '';
 	let markdownHtml = '';
+	let downloading = false;
 
 	onMount(async () => {
 		if (previewMode === 'download') {
-			downloadStatus = 'active';
-			downloadBase64AsFile(base64, name);
-			downloadStatus = 'finished';
-			if ($page.url.searchParams.has('download')) {
-				setTimeout(() => {
-					window.close();
-				}, 500);
-			}
-		} else if (previewMode === 'text') {
+			await triggerDownload();
+			return;
+		}
+		if (previewMode === 'text') {
 			try {
-				textContent = atob(base64);
+				const res = await fetch(fileUrl);
+				textContent = await res.text();
 			} catch {
-				textContent = 'Could not decode file content.';
+				textContent = 'Could not load file content.';
 			}
 		} else if (previewMode === 'markdown') {
-			const DOMPurify = (await import('dompurify')).default;
 			try {
-				markdownHtml = DOMPurify.sanitize(marked.parse(atob(base64)) as string);
+				const DOMPurify = (await import('dompurify')).default;
+				const res = await fetch(fileUrl);
+				const text = await res.text();
+				markdownHtml = DOMPurify.sanitize(marked.parse(text) as string);
 			} catch {
 				markdownHtml = '<p>Could not render markdown.</p>';
 			}
 		}
 	});
 
-	function triggerDownload() {
-		downloadBase64AsFile(base64, name);
+	// Download the file via fetch → Blob → programmatic anchor click so that we
+	// stream through the server endpoint rather than embedding the content in the
+	// page payload.
+	async function triggerDownload() {
+		downloading = true;
+		try {
+			const res = await fetch(`${fileUrl}?download=true`);
+			const blob = await res.blob();
+			const blobUrl = URL.createObjectURL(blob);
+			const a = document.createElement('a');
+			a.href = blobUrl;
+			a.download = name;
+			document.body.appendChild(a);
+			a.click();
+			document.body.removeChild(a);
+			URL.revokeObjectURL(blobUrl);
+		} finally {
+			downloading = false;
+		}
 	}
-
-	$: dataUri = `data:${getMimeType(name)};base64,${base64}`;
 </script>
 
 {#if previewMode === 'download'}
@@ -76,11 +79,13 @@
 		<div class="centered-content">
 			<Download size={32} />
 			<h1>{name}</h1>
-			<ProgressBar status={downloadStatus} labelText={`Downloading ${name}`} />
+			<p>This file type cannot be previewed.</p>
 			<div class="download-actions">
-				<Button size="lg" icon={Download} on:click={triggerDownload}>Download again</Button>
-				<!-- svelte-ignore a11y-invalid-attribute -->
-				<p class="close"><a href="javascript:window.close();">Close tab</a></p>
+				{#if downloading}
+					<InlineLoading description="Downloading…" />
+				{:else}
+					<Button size="lg" icon={Download} on:click={triggerDownload}>Download</Button>
+				{/if}
 			</div>
 		</div>
 	</div>
@@ -88,17 +93,25 @@
 	<div class="preview-container">
 		<div class="preview-header">
 			<span class="filename">{name}</span>
-			<Button size="sm" icon={Download} on:click={triggerDownload}>Download</Button>
+			{#if downloading}
+				<InlineLoading description="Downloading…" />
+			{:else}
+				<Button size="sm" icon={Download} on:click={triggerDownload}>Download</Button>
+			{/if}
 		</div>
 		<div class="preview-body image-preview">
-			<img src={dataUri} alt={name} />
+			<img src={fileUrl} alt={name} />
 		</div>
 	</div>
 {:else if previewMode === 'text'}
 	<div class="preview-container">
 		<div class="preview-header">
 			<span class="filename">{name}</span>
-			<Button size="sm" icon={Download} on:click={triggerDownload}>Download</Button>
+			{#if downloading}
+				<InlineLoading description="Downloading…" />
+			{:else}
+				<Button size="sm" icon={Download} on:click={triggerDownload}>Download</Button>
+			{/if}
 		</div>
 		<div class="preview-body text-preview">
 			<pre>{textContent}</pre>
@@ -108,7 +121,11 @@
 	<div class="preview-container">
 		<div class="preview-header">
 			<span class="filename">{name}</span>
-			<Button size="sm" icon={Download} on:click={triggerDownload}>Download</Button>
+			{#if downloading}
+				<InlineLoading description="Downloading…" />
+			{:else}
+				<Button size="sm" icon={Download} on:click={triggerDownload}>Download</Button>
+			{/if}
 		</div>
 		<div class="preview-body markdown-preview">
 			<!-- eslint-disable-next-line svelte/no-at-html-tags -->
@@ -119,16 +136,20 @@
 	<div class="preview-container">
 		<div class="preview-header">
 			<span class="filename">{name}</span>
-			<Button size="sm" icon={Download} on:click={triggerDownload}>Download</Button>
+			{#if downloading}
+				<InlineLoading description="Downloading…" />
+			{:else}
+				<Button size="sm" icon={Download} on:click={triggerDownload}>Download</Button>
+			{/if}
 		</div>
 		<div class="preview-body pdf-preview">
-			<embed src={dataUri} type="application/pdf" width="100%" height="100%" />
+			<embed src={fileUrl} type="application/pdf" width="100%" height="100%" />
 		</div>
 	</div>
 {/if}
 
 <style>
-	/* Centered views (download / unsupported) */
+	/* Centered view for un-previewable files */
 	.centered-view {
 		display: flex;
 		align-items: center;
@@ -158,11 +179,7 @@
 		margin: 10px 0;
 	}
 
-	p.close a {
-		color: var(--cds-danger-01, #da1e28);
-	}
-
-	/* Preview layout — full viewport below Carbon header (3rem / 48px) */
+	/* Full-viewport preview panel below the Carbon header (48px / 3rem) */
 	.preview-container {
 		position: fixed;
 		top: 3rem;
@@ -174,6 +191,7 @@
 		z-index: 1;
 	}
 
+	/* Sticky sub-header inside the panel — flex item, not separately fixed */
 	.preview-header {
 		display: flex;
 		align-items: center;
@@ -183,12 +201,6 @@
 		border-bottom: 1px solid var(--cds-ui-03, #e0e0e0);
 		background: var(--cds-ui-01, #f4f4f4);
 		flex-shrink: 0;
-		width: 100%;
-		box-sizing: border-box;
-		position: fixed;
-		top: 48px; /* Adjust for Carbon header height */
-		left: 0;
-		right: 0;
 	}
 
 	.filename {

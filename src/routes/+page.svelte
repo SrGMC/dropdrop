@@ -39,6 +39,7 @@
 		{:else}
 			<InlineLoading description="Creating box..." />
 		{/if}
+		<p class="notice">Empty boxes are automatically deleted after 15 days.</p>
 
 		{#if $recentBoxes.length > 0}
 			<div class="recentBoxes">
@@ -74,6 +75,12 @@
 	.copyright {
 		font-size: 1rem;
 		opacity: 0.8;
+	}
+
+	.notice {
+		margin-top: 12px;
+		font-size: 0.9rem;
+		opacity: 0.7;
 	}
 
 	.recentBoxes {

@@ -17,11 +17,13 @@ export function buildPath(
 	file?: string,
 	addBox: boolean = true
 ) {
-	pathArray.filter((path) => path != undefined && path != null && path.trim() != '');
+	const segments = pathArray.filter(
+		(path) => path != undefined && path != null && path.trim() != ''
+	);
 	let basePath = `${addBox ? '/box' : ''}/${boxId}`;
 
-	if (pathArray.length > 0) {
-		basePath += `/${pathArray.join('/')}`;
+	if (segments.length > 0) {
+		basePath += `/${segments.join('/')}`;
 	}
 
 	if (file) {
