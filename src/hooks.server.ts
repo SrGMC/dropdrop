@@ -42,6 +42,7 @@ setInterval(cleanupEmptyBoxes, 6 * 60 * 60 * 1000);
 export const handle: Handle = async ({ event, resolve }) => {
 	const response = await resolve(event);
 
+	response.headers.set('Cache-Control', 'no-store');
 	response.headers.set('X-Content-Type-Options', 'nosniff');
 	response.headers.set('X-Frame-Options', 'DENY');
 	response.headers.set('Referrer-Policy', 'no-referrer');
