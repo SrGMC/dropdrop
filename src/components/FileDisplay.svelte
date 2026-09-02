@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
 	import { browser } from '$app/environment';
 	import { Button, InlineLoading } from 'carbon-components-svelte';
@@ -8,13 +7,12 @@
 	import { onMount } from 'svelte';
 
 	export let name: string;
+	export let fileUrl: string;
 	export let prevUrl: string | null = null;
 	export let nextUrl: string | null = null;
 
 	type PreviewMode = 'image' | 'text' | 'markdown' | 'pdf' | 'download';
 
-	// Reactive so client-side navigation updates the image src / embed src.
-	$: fileUrl = $page.url.pathname;
 	$: previewMode = getPreviewMode(name) as PreviewMode;
 
 	function getPreviewMode(filename: string): PreviewMode {

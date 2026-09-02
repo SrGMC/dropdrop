@@ -64,5 +64,5 @@
 		/>
 	{/key}
 {:else}
-	<FileDisplay name={data.name} {prevUrl} {nextUrl} />
+	<FileDisplay name={data.name} fileUrl={buildPath(data.boxId, data.path)} {prevUrl} {nextUrl} />
 {/if}

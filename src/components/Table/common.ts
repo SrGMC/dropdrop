@@ -64,28 +64,31 @@ export async function remove(
 	dispatch('remove', result);
 }
 
-// Download files via fetch → Blob → programmatic anchor so that requests reach
-// the streaming server endpoint rather than the page route.
+// Download selected files/folders as a single zip via the bulk-zip endpoint.
 export async function download(currentFiles: File[], selectedIds: string[], boxId: string) {
-	for (let i = 0; i < selectedIds.length; i++) {
-		const id = selectedIds[i];
-		const file = currentFiles.find((f) => f.id == id);
-		if (!file) continue;
+	const paths = selectedIds
+		.map((id) => currentFiles.find((f) => f.id === id)?.path)
+		.filter((p): p is string[] => Array.isArray(p));
 
-		try {
-			const res = await fetch(`${buildPath(boxId, file.path)}?download=true`);
-			if (!res.ok) continue;
-			const blob = await res.blob();
-			const blobUrl = URL.createObjectURL(blob);
-			const a = document.createElement('a');
-			a.href = blobUrl;
-			a.download = file.name;
-			document.body.appendChild(a);
-			a.click();
-			document.body.removeChild(a);
-			URL.revokeObjectURL(blobUrl);
-		} catch (err) {
-			console.error('download failed', err);
-		}
+	if (paths.length === 0) return;
+
+	try {
+		const res = await fetch(`/api/box/${boxId}/zip`, {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ paths })
+		});
+		if (!res.ok) return;
+		const blob = await res.blob();
+		const blobUrl = URL.createObjectURL(blob);
+		const a = document.createElement('a');
+		a.href = blobUrl;
+		a.download = `${boxId}.zip`;
+		document.body.appendChild(a);
+		a.click();
+		document.body.removeChild(a);
+		URL.revokeObjectURL(blobUrl);
+	} catch (err) {
+		console.error('download failed', err);
 	}
 }
